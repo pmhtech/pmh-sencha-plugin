@@ -1,7 +1,24 @@
+/**
+ *
+ *
+ *
+ *
+ *
+ */
 Ext.define('PmhTech.Format', {
     extend: 'Ext.Base',
     statics: {
 
+		/**
+         *
+         * @param value
+         * @param metaData
+         * @param record
+         * @param rowIndex
+         * @param colIndex
+         * @param store
+         * @returns {string}
+         */
         comboRenderer : function(value, metaData, record, rowIndex, colIndex, store){
             var combo = this.getColumns()[colIndex].getEditor();
             var comboStore = combo.getStore();
@@ -22,6 +39,10 @@ Ext.define('PmhTech.Format', {
 
             return value;
         },
+		/**
+         *
+         * @param value
+         */
         dateRenderer: function (value) {
 
             if (Ext.isDate(value)) {
@@ -34,9 +55,18 @@ Ext.define('PmhTech.Format', {
 
             return Ext.String.format('{0}-{1}-{2}', year, month, day);
         },
+		/**
+         *
+         * @param value
+         */
         numberRenderer: function (value) {
             return Ext.util.Format.number(value, '#,###')
         }
+		/**
+         *
+         * @param value
+         * @returns {string}
+         */
         ,inactiveRenderer: function (value) {
             return value == 'N' ? '' : value;
         }

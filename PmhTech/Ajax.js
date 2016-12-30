@@ -1,30 +1,8 @@
 /**
- * Ext.Ajax를 재구현 한 로직으로써 callback및 Resource를 재생성 시켜줍니다.
- *
- *     @example
- *     PmhTech.Ajax.request({
- *     		url : '/sys/roles
- *     		params : {
- *     			sysRoles : Ext.encode(sysRoles),
- *     			sysRoles : Ext.encode(sysRoles),
- * 		    	sysRoles : Ext.encode(sysRoles),
- *
- *  	   	},confrimMsg : {
- *  	   		title : '확인',
- *  	   		message : '저장하시겠습니까?'
- *  	   	},successMsg : {
- *  	   		title : '확인',
- *  	   		message : '정상처리되었습니다'
- *  	   	}
- *
- *     });
  *
  *
- * # Heterogeneous node types.
  *
- * If the tree needs to use different data model classes at different levels there is much flexibility in how to specify this.
  *
- * ### Configuring the Reader.
  *
  */
 Ext.define('PmhTech.Ajax', {

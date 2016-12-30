@@ -1,3 +1,9 @@
+/**
+ *
+ *
+ * SingleTone 방식으로 Window를 생성시켜줍니다.
+ *
+ */
 Ext.define('PmhTech.window.SingleToneWindow', {
     extend: 'Ext.window.Window',
     modal: true,

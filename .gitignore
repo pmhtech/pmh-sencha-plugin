@@ -3,3 +3,6 @@ bootstrap.json
 build/
 ext/
 /pmh/
+/.idea/
+/.project
+/build.command

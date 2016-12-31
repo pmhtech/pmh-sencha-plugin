@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-event-TaskManagerManager'>/**
+</span>
+ 사용가이드
+
+ 최초 app.js 상에서
+
+
+ GlobalTask와 StaticTask란 ??
+
+ GlobalTask : App 전체적으로 광역적으로 써야하는경우
+ StaticTask : 특정화면에서 종속적으로 써야하는경우
+
+ stopAllTask : StaticTask 전체 실행중지 : Ext.Route beforehandler에 정의하면 될것같음..
+
+
+ PmhTech.util.TaskUtil.setStaticTask({
+ 		&#39;STACK1_TASK&#39; : null,
+ 		&#39;STACK2_TASK&#39; : null,
+ 		&#39;STACK3_TASK&#39; : null,
+ });
+
+ PmhTech.util.TaskUtil.setGlobalTask({
+ 		&#39;GLOBAL1_TASK&#39; : null,
+ 		&#39;GLOBAL2_TASK&#39; : null,
+ 		&#39;GLOBAL3_TASK&#39; : null,
+ });
+
+ PmhTech.util.TaskUtil.initTask();
+
+
+ 왜 이름을 미리 등록하고 사용하냐면... 태스크 타이핑 실수를 방지하기 위하여 정의하였습니다.
+ 실제로.. 스케줄러이름 잘못 만들어서 계속 만들거나 제어가 안되면 App이 죽습니다.(메모리초과로 인하여)
+ 물론 이런버그는 찾기 진짜힘들어요...
+
+
+
+ //매 3초마다 실행하는 Task 등록
+ PmhTech.util.TaskUtil.registerTask(&#39;STACK1_TASK&#39;,function(){ console.log(&#39;AAAA)},this,3000);
+
+
+ //태스크시작
+ PmhTech.util.TaskUtil.start(&#39;STACK1_TASK&#39;);
+
+ //태스크중지
+ PmhTech.util.TaskUtil.stop(&#39;STACK1_TASK&#39;);
+
+
+ // GlobalTask 를 제외한 모든 Task멈춤
+ PmhTech.util.TaskUtil.stopAllTask();
+
+
+
+ */
+Ext.define(&#39;PmhTech.plugin.event.TaskManagerManager&#39;, {
+
+    statics: {
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-setStaticTask'>        /**
+</span>         * @public
+         * StaticTask 초기화함수
+         * @param {Object} 사용할 StaticTask  task : null 형태로 저장
+         * @return {String} 해당 task의 종류
+         *
+         */
+        setStaticTask: function (staticTask) {
+            this.StaticTask = staticTask;
+        },
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-setGlobalTask'>        /**
+</span>         * @public
+         *  GlobalTask 초기화함수
+         * @param {Object} 사용할 StaticTask  task : null 형태로 저장
+         * @return {String} 해당 task의 종류
+         *
+         */
+        setGlobalTask: function (globalTask) {
+            this.GlobalTask = globalTask;
+        },
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-initTask'>        initTask: function () {
+</span>
+            if (Ext.isEmpty(this.StaticTask) &amp;&amp; Ext.isEmpty(this.GlobalTask)) {
+                alert(&#39;Task가 생성되지 않았습니다&#39;);
+            }
+        },
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-getTaskType'>        /**
+</span>         * @private
+         *  Task 타입 가져오기
+         * @param {String} taskName task 이름
+         * @return {String} 해당 task의 종류
+         *
+         */
+        getTaskType: function (taskName) {
+            if (this.StaticTask[taskName] === undefined &amp;&amp; this.GlobalTask[taskName] === undefined) {
+                return null;
+            }
+            return this.StaticTask[taskName] === undefined ? &#39;GlobalTask&#39; : &#39;StaticTask&#39;;
+        },
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-createTask'>        /**
+</span>         * @public
+         *  Task 생성
+         * @param {String} taskName Task 이름
+         * @param {String} taskFunction 생성 콜백 함수
+         * @param {String} scope 콜백 함수 scope
+         * @param {String} delay task 수행 주기
+         *
+         */
+        createTask: function (taskName, taskFunction, scope, delay) {
+
+            if (this.StaticTask === undefined) {
+                this.initTask();
+
+            }
+            var taskType = this.getTaskType(taskName);
+            if (Ext.isEmpty(taskType)) {
+                alert(taskName + &#39;은 정의되지 않은 Task입니다.&#39;);
+                return;
+            } else if (this[taskType][taskName] !== null) {
+                var task = this[taskType][taskName];
+                Ext.util.TaskManager.stop(task);
+            }
+
+            var task = Ext.util.TaskManager.newTask({
+                run: taskFunction,
+                interval: Ext.isEmpty(delay) ? 5000 : delay,
+                scope: scope
+            });
+            console.log(&#39;CREATE TASK : &#39; + taskName);
+            this[taskType][taskName] = task;
+        }
+        ,
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-removeTask'>        /**
+</span>         * @public
+         *  Task 삭제
+         * @param {String} taskName Task 이름
+         *
+         */
+        removeTask: function (taskName) {
+            var taskType = this.getTaskType(taskName);
+            if (Ext.isEmpty(this[taskType][taskName])) {
+                this[taskType][taskName].stop();
+            }
+            this[taskType][taskName] = null;
+        }
+        ,
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-startTask'>        /**
+</span>         * @public
+         *  Task 시작
+         * @param {String} taskName Task 이름
+         * @param {Boolean} 시작 여부
+         *
+         */
+        startTask: function (taskName) {
+            var taskType = this.getTaskType(taskName);
+            if (!Ext.isEmpty(this[taskType][taskName])) {
+                var task = this[taskType][taskName];
+                Ext.util.TaskManager.start(task);
+                console.log(&#39;TASK START : &#39; + taskName);
+                return true;
+            }
+            return false;
+        }
+        ,
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-stopTask'>        /**
+</span>         * @public
+         *  Task 멈춤
+         * @param {String} taskName Task 이름
+         * @param {Boolean} 시작 여부
+         *
+         */
+        stopTask: function (taskName) {
+            var taskType = this.getTaskType(taskName);
+
+            if (!Ext.isEmpty(this[taskType][taskName])) {
+                var task = this[taskType][taskName];
+                Ext.util.TaskManager.stop(task);
+                console.log(&#39;TASK STOP : &#39; + taskName);
+                return true;
+            }
+            return false;
+        }
+        ,
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-stopAllTask'>        /**
+</span>         * @public
+         * global task를 제외한 모든 Task 멈춤
+         */
+        stopAllTask: function () {
+            var me = this;
+            Ext.iterate(this.StaticTask, function (key, value) {
+                if (!Ext.isEmpty(value)) {
+                    me.stopTask(key);
+                }
+            });
+        }
+        ,
+
+<span id='PmhTech-plugin-event-TaskManagerManager-static-method-registerTask'>        /**
+</span>         * @public
+         *  Task 등록
+         *  화면 이동시 실행/멈춤 관리가 병행된다
+         * @param {String} taskName Task 이름
+         * @param {String} taskFunction 생성 콜백 함수
+         * @param {String} scope 콜백 함수 scope
+         * @param {String} delay task 수행 주기
+         */
+        registerTask: function (taskName, taskFunction, scope, delay) {
+            var me = scope;
+
+            var TaskUtil = this;
+
+            TaskUtil.createTask(taskName, taskFunction, me, delay);
+
+            if (this.getTaskType(taskName) == &#39;StaticTask&#39;) {
+                me.addListener(&#39;afterlayout&#39;, function (component) {
+                    TaskUtil.startTask(taskName);
+                });
+                me.addListener(&#39;deactivate&#39;, function (component) {
+                    TaskUtil.stopTask(taskName);
+                });
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

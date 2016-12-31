@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-override-form-field-vtype-Character'>/**
+</span> *
+ */
+Ext.define(&#39;PmhTech.override.form.field.vtype.Character&#39;,{
+   override : &#39;Ext.form.field.VTypes&#39;,
+<span id='PmhTech-override-form-field-vtype-Character-method-codeOnly'>    /**
+</span>     *  코드용 - 숫자,영어 대문자, - 만 입력가능
+     *  vtype : engOnly
+     * @param value
+     * @param field
+     * @returns {Boolean}
+     */
+    codeOnly: function (value, field) {
+        return /^[0-9|A-Z]+$/.test(value);
+    },
+<span id='PmhTech-override-form-field-vtype-Character-property-codeOnlyText'>    codeOnlyText :&#39;영문대문자와 숫자만 입력가능합니다.&#39; ,
+</span>
+
+<span id='PmhTech-override-form-field-vtype-Character-method-engOnly'>    /**
+</span>     *  영문만 입력가능
+     *  vtype : engOnly
+     * @param value
+     * @param field
+     * @returns {Boolean}
+     */
+    engOnly: function (value, field) {
+        return /^[a-z|A-Z]+$/.test(value);
+    },
+<span id='PmhTech-override-form-field-vtype-Character-property-engOnlyText'>    engOnlyText :&#39;영문과 공백만 입력가능합니다.&#39; ,
+</span>
+<span id='PmhTech-override-form-field-vtype-Character-method-korOnly'>    /**
+</span>     *  한글만 입력가능
+     *  vtype : korOnly
+     * @param value
+     * @param field
+     * @returns {Boolean}
+     */
+    korOnly: function (value, field) {
+        return true;/^[a-z|A-Z]+$/.test(value);
+    },
+<span id='PmhTech-override-form-field-vtype-Character-property-korOnlyText'>    korOnlyText :&#39;한글만 입력가능합니다.&#39;,
+</span>
+<span id='PmhTech-override-form-field-vtype-Character-method-engKorNumberSpaceOnly'>    /**
+</span>     *  한글,영문,숫자,공백만 입력가능
+     *  vtype : engKorNumberSpaceOnly
+     * @param value
+     * @param field
+     * @returns {Boolean}
+     */
+    engKorNumberSpaceOnly: function (value, field) {
+        return /^[ㄱ-ㅎ|가-힣|a-z|A-Z|0-9\ ]+$/.test(value);
+    },
+<span id='PmhTech-override-form-field-vtype-Character-property-engKorNumberSpaceOnlyText'>    engKorNumberSpaceOnlyText : &#39;한글/영문/숫자/공백만 입력가능합니다.&#39;
+</span>});</pre>
+</body>
+</html>

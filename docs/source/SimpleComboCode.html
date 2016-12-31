@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.form.field.combo.SimpleComboCode&#39;,{
+    extend : &#39;Ext.form.field.ComboBox&#39;,
+    alias: [&#39;widget.pmh-simple-combo-code&#39;, &#39;widget.pmh-combo-code&#39;],
+    sysCodeName : null,
+    displayField : &#39;CODE_NM&#39;,
+    valueField : &#39;CODE&#39;,
+    isAll : true,
+    initComponent : function(){
+
+        var me = this;
+
+        if(me.sysCodeName){
+            Ext.apply(me,{
+                store : SysCode[me.sysCodeName].copy(me.isAll)
+            });
+        }
+        me.callParent(arguments);
+
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-form-DirtyCheckerPlugin'>/**
+</span> *
+ * trackResetOnLoad 를 활성화시켜 loadData 또는 setValues할때 Original값을 유지시키도록 하는 함수
+ * 최초 렌더링되었을때 값을 돌려주는 함수가 없으므로 forceReset을 구현하였습니다.
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.plugin.form.DirtyCheckerPlugin&#39;, {
+	extend: &#39;Ext.AbstractPlugin&#39;,
+	alias: &#39;plugin.pmh-form-dirtychecker&#39;,
+<span id='PmhTech-plugin-form-DirtyCheckerPlugin-method-init'>	init: function (form) {
+</span>		var me = this;
+		me.form = form;
+		me.form.trackResetOnLoad = true;
+
+		me.basicForm = form.getForm();
+		me.basicForm.trackResetOnLoad = true;
+
+		me.basicForm.forceReset = Ext.Function.bind(me.forceReset, me);
+		me.form.forceReset = Ext.Function.bind(me.forceReset, me);
+
+		me.basicForm.getOriginalValues = Ext.Function.bind(me.getOriginalValues, me);
+		me.form.getOriginalValues = Ext.Function.bind(me.getOriginalValues, me);
+	},
+<span id='PmhTech-plugin-form-DirtyCheckerPlugin-method-forceReset'>	/**
+</span>	 * 데이터를 입력모드로 전환시킴
+	 * @param {Ext.form.Panel}
+	 * @return {Boolean} 오류 발생시 false 없으면 true
+	 *
+	 */
+	forceReset : function(){
+
+		var me = this.basicForm;
+		var valueObject = me.getValues();
+		var fields = me.getFields().items;
+		for(var i=0;i&lt;fields.length;i++){
+			var field = fields[i];
+			var fieldName = field.getName();
+			valueObject[fieldName]=field.oriValue;
+		}
+		me.setValues(valueObject);
+	},
+<span id='PmhTech-plugin-form-DirtyCheckerPlugin-method-getOriginalValues'>	/**
+</span>	 * 변경되기전 Original값을 가져온다
+	 * @return {Object} 변경되기전값을 리턴한다
+	 *
+	 */
+	getOriginalValues: function(){
+		var me = this.basicForm;
+		var fields = me.getFields().items;
+		var valueObject ={};
+
+		for(var i=0;i&lt;fields.length;i++){
+			var field = fields[i];
+			valueObject[field.name]=field.originalValue;
+		}
+		return valueObject;
+	}
+});</pre>
+</body>
+</html>

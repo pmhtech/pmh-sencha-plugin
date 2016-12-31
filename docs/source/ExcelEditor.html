@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-grid-ExcelEditor'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.plugin.grid.ExcelEditor&#39;, {
+	extend: &#39;Ext.grid.plugin.CellEditing&#39;,
+	alias: &#39;plugin.pmh-grid-excel-editor&#39;,
+<span id='PmhTech-plugin-grid-ExcelEditor-property-clicksToEdit'>	clicksToEdit : 1,
+</span><span id='PmhTech-plugin-grid-ExcelEditor-method-onEditorKey'>	onEditorKey: function (field, e) {
+</span>		var k = e.getKey(),
+			newCell, g = this.grid,
+			ed = g.activeEditor;
+		var numberOfRows = grid.getStore().getCount();
+		var maxrow = numberOfRows - 1;
+		var shift = e.shiftKey;
+		var last = g.lastEdit;
+		if (k == e.TAB) {
+			if (e.shiftKey) {
+				var newrow = ed.row - 1;
+				if (newrow &lt; 0) {
+					var newrow = maxrow;
+				}
+				newCell = g.walkCells(newrow, ed.col, -1, this.acceptsNav, this);
+			}
+			else {
+				var newrow = ed.row + 1;
+				if (newrow &gt; maxrow) {
+					var newrow = 0;
+				}
+				newCell = g.walkCells(newrow, ed.col, 1, this.acceptsNav, this);
+			}
+			e.stopEvent();
+		}
+		else if (k == e.ENTER) {
+			var nexrow = last.row + 1;
+			var prerow = last.row - 1;
+			if (nexrow &gt; maxrow) {
+				var nexrow = 0;
+			}
+			if (prerow &lt; 0) {
+				var prerow = maxrow;
+			}
+			if (this.moveEditorOnEnter !== false) {
+				if (shift) {
+					newCell = g.walkCells(prerow, last.col, -1, this.acceptsNav, this);
+				}
+				else {
+					newCell = g.walkCells(nexrow, last.col, 1, this.acceptsNav, this);
+				}
+			}
+		}
+		else if (k == e.ESC) {
+			e.stopEvent();
+			ed.cancelEdit();
+			g.getView().focusCell(ed.row, ed.col);
+		}
+		else if (k == e.DOWN) {
+			ed.completeEdit();
+			e.stopEvent();
+			var newrow = ed.row + 1;
+			if (newrow &gt; maxrow) {
+				var newrow = 0;
+			}
+			newCell = g.walkCells(newrow, ed.col, 1, this.acceptsNav, this);
+			ed.field.focus(true);
+		}
+		else if (k == e.UP) {
+			ed.completeEdit();
+			e.stopEvent();
+			var newrow = ed.row - 1;
+			if (newrow &lt; 0) {
+				var newrow = maxrow;
+			}
+			newCell = g.walkCells(newrow, ed.col, -1, this.acceptsNav, this);
+			ed.field.focus(true);
+		}
+		if (newCell) {
+			g.startEditing(newCell[0], newCell[1]);
+		}
+	}
+
+});
+</pre>
+</body>
+</html>

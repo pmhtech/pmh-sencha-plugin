@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-toolbar-ButtonToolbar'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.toolbar.ButtonToolbar&#39;, {
+    extend: &#39;Ext.toolbar.Toolbar&#39;,
+    alias: &#39;widget.pmh-button-toolbar&#39;,
+<span id='PmhTech-toolbar-ButtonToolbar-property-layout'>    layout : {
+</span>        type : &#39;hbox&#39;,
+        align : &#39;stretch&#39;
+    },
+<span id='PmhTech-toolbar-ButtonToolbar-property-btnItems'>    btnItems : [],
+</span><span id='PmhTech-toolbar-ButtonToolbar-property-buttonAlign'>    buttonAlign : &#39;center&#39;,
+</span><span id='PmhTech-toolbar-ButtonToolbar-method-initComponent'>    initComponent: function () {
+</span>        var me = this;
+
+        var items = [];
+
+        if(me.buttonAlign==&#39;center&#39; ||me.buttonAlign== &#39;right&#39;){
+            items.push({xtype:&#39;tbfill&#39;});
+        }
+        for(var i=0;i&lt;me.btnItems.length;i++){
+
+            var buttonType = me.btnItems[i];
+
+            var tempObj={};
+            if(Ext.isString(buttonType)) {
+
+
+                Ext.apply(tempObj,{
+                    xtype: &#39;pmh-button-&#39; + buttonType,
+                    handler: &#39;onBtn&#39; + buttonType.charAt(0).toUpperCase() + buttonType.slice(1),
+                    scope : me.scope
+                });
+
+            }else{
+                Ext.apply(tempObj, buttonType);
+                Ext.apply(tempObj,{
+                    xtype : &#39;pmh-button-&#39;+buttonType.btnType
+                });
+
+                if(!tempObj.handler){
+                    tempObj.handler= &#39;onBtn&#39; + buttonType.btnType.charAt(0).toUpperCase() + buttonType.btnType.slice(1);
+                    tempObj.scope = me.scope
+                }
+
+            }
+            items.push(tempObj);
+        }
+
+        if(me.buttonAlign==&#39;center&#39;){
+            items.push({xtype:&#39;tbfill&#39;});
+        }
+
+        Ext.apply(me, {
+            items :items
+        });
+
+
+        me.callParent(arguments);
+    }
+});</pre>
+</body>
+</html>

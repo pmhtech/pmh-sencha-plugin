@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-grid-Extra'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.plugin.grid.Extra&#39;, {
+	extend: &#39;Ext.AbstractPlugin&#39;,
+	alias: &#39;plugin.pmh-grid-extra&#39;,
+<span id='PmhTech-plugin-grid-Extra-cfg-rowNumberer'>	/***
+</span>	 * @cfg {Number|Boolean} rowNumberer
+	 * RowNumber를 자동으로 넣어준다 만일 0 또는 false입력시 RowNumberer를 숨겨준다.
+	 *
+	 */
+	rowNumberer : 38,
+<span id='PmhTech-plugin-grid-Extra-method-init'>	init: function (grid) {
+</span>		var me = this;
+		me.grid = grid;
+		me.grid.getSubmitData = Ext.Function.bind(me.getSubmitData, me);
+		me.grid.getHttpMethod = Ext.Function.bind(me.getHttpMethod, me);
+
+		var columns = me.getRowNumberer();
+		var isCheckerPlugin = me.isCheckerPlugin();
+
+		if(isCheckerPlugin){
+			columns.unshift({xtype: &#39;pmh-checkcolumn&#39;, dataIndex: &#39;isChecked&#39;, width: 30});
+		}
+
+		grid.reconfigure(columns);
+	},
+
+<span id='PmhTech-plugin-grid-Extra-method-isCheckerPlugin'>	isCheckerPlugin :function(){
+</span>		var grid = this.grid;
+		for(var i=0;i&lt;grid.plugins.length;i++){
+
+			if(grid.plugins[i].ptype==&#39;pmh-grid-checker&#39;){
+				return true;
+			}
+		}
+		return false;
+	},
+<span id='PmhTech-plugin-grid-Extra-method-getRowNumberer'>	getRowNumberer : function(){
+</span>		var me = this;
+		var grid = me.grid;
+		var columns = Ext.clone(grid._columns);
+		if (Ext.isNumber(me.rowNumberer)) {
+			if (Ext.isArray(columns)) {
+				columns.unshift({xtype: &#39;rownumberer&#39;, text: &#39;#&#39;, width: me.rowNumberer});
+			}
+		}
+
+		return columns;
+	},
+<span id='PmhTech-plugin-grid-Extra-method-getHttpMethod'>	getHttpMethod: function () {
+</span>
+		var grid = this.grid;
+		var count = grid.getSelectionModel().getSelection().length;
+		return count==0 ? &#39;POST&#39; : &#39;PUT&#39;;
+	},
+
+<span id='PmhTech-plugin-grid-Extra-method-getSubmitData'>	/*
+</span>	 * @params options : getIndex, InjectData
+	 * @params Array, injection
+	 *
+	 *
+	 * */
+	getSubmitData: function (listDataIndex,injectDatas) {
+
+		var grid = this.grid;
+		var gridStore = grid.getStore();
+		var gridDatas = [];
+
+
+		for (var i = 0; i &lt; gridStore.getCount(); i++) {
+			var rec = gridStore.getAt(i);
+
+			var tempObj = {};
+
+			if(Ext.isArray(listDataIndex)){
+				for (var j= 0; j &lt; listDataIndex.length; j++) {
+					var key = listDataIndex[j];
+					tempObj[key]= rec.get(key);
+				}
+			}else{
+				Ext.iterate(rec.data,function(key,value){
+					tempObj[key]=value;
+				});
+			}
+
+			if(Ext.isObject(injectDatas)){
+				Ext.apply(tempObj,injectData);
+			}
+
+
+			gridDatas.push(tempObj);
+		}
+		return gridDatas;
+	}
+});</pre>
+</body>
+</html>

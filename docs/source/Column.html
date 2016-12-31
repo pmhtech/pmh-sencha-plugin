@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-override-grid-column-Column'>/**
+</span> *
+ */
+Ext.define(&#39;PmhTech.override.grid.column.Column&#39;, {
+	override: &#39;Ext.grid.column.Column&#39;,
+<span id='PmhTech-override-grid-column-Column-property-style'>	style: &#39;text-align:center&#39;,
+</span><span id='PmhTech-override-grid-column-Column-property-align'>	align: &#39;start&#39;,
+</span><span id='PmhTech-override-grid-column-Column-property-editable'>	editable: false,
+</span><span id='PmhTech-override-grid-column-Column-method-initComponent'>	initComponent: function () {
+</span>		var me = this;
+
+		if (me.editor) {
+			Ext.apply(me, {
+				editor: Ext.widget(me.editor.xtype, me.editor),
+				getEditor: function () {
+					return me.editor;
+				}
+			});
+
+			var columnRenderer = Ext.clone(me.renderer);
+
+			Ext.apply(me, {
+				renderer: function (value, metaData, record, rowIndex, colIndex, store, view) {
+					var editor = this.getColumns()[colIndex].getEditor();
+					var temp = Ext.isEmpty(value) ? &#39;&#39; : value;
+					if (editor.getErrors(temp).length &gt; 0) {
+						metaData.style = &#39;background-color: yellow;&#39;;
+					}
+					if (Ext.isFunction(columnRenderer)) {
+
+						return Ext.callback(columnRenderer, this, [value, metaData, record, rowIndex, colIndex, store, view]);
+
+					}
+					return value;
+				}
+			});
+		}
+		me.callParent(arguments);
+	}
+});</pre>
+</body>
+</html>

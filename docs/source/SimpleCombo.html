@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.form.field.combo.SimpleComboBox&#39;,{
+    extend : &#39;Ext.form.field.ComboBox&#39;,
+    alias: [&#39;widget.pmh-combo&#39;, &#39;widget.pmh-simple-combo&#39;],
+    isShowCode : false,
+    storeProps: {
+        url: null,
+        fields: [],
+        rootProperty: null
+    },
+    initComponent : function(){
+        var me = this;
+
+        if(me.isShowCode===true){
+            Ext.apply(me,{
+                tpl: Ext.create(&#39;Ext.XTemplate&#39;,
+                    &#39;&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-boundlist-item&quot;&gt;[{&#39; + me.valueField + &#39;}]&amp;nbsp;&amp;nbsp;{&#39; + me.displayField + &#39;}&lt;/div&gt;&lt;/tpl&gt;&#39;
+                ),
+                displayTpl: Ext.create(&#39;Ext.XTemplate&#39;,
+                    &#39;&lt;tpl for=&quot;.&quot;&gt;[{&#39; + me.valueField + &#39;}]  {&#39; + me.displayField + &#39;}&lt;/tpl&gt;&#39;
+                )
+            });
+        }
+
+        Ext.apply(me,{
+            store : me.configStore(),
+            listeners: {
+                select: Ext.emptyFn,
+                storeLoad: Ext.emptyFn,
+                storeAdd: Ext.emptyFn,
+                storeRemove: Ext.emptyFn,
+                storeUpdate: Ext.emptyFn,
+                afterrender: Ext.emptyFn
+            }
+        });
+
+
+        me.callParent(arguments);
+    },
+    configStore: function () {
+
+        var me = this;
+        if (me.store) {
+
+            return me.store;
+        }
+
+        return Ext.create(&#39;Ext.data.Store&#39;, {
+            fields: Ext.isArray(me.storeProps.fields) ? Ext.clone(me.storeProps.fields) : [],
+            autoLoad: me.storeProps.autoLoad,
+            proxy: {
+                type: Ext.isEmpty(me.storeProps.url) ? &#39;memory&#39; : &#39;ajax&#39;,
+                url: me.storeProps.url,
+                reader: {
+                    type: &#39;json&#39;,
+                    rootProperty: me.storeProps.rootProperty
+                }
+            },
+            listeners: {
+                load: function (store) {
+                    me.show();
+                    this.fireEventArgs(&#39;storeLoad&#39;, arguments);
+                },
+                add: function (store) {
+
+                    this.fireEventArgs(&#39;storeAdd&#39;, arguments);
+                },
+                remove: function (store) {
+
+                    this.fireEventArgs(&#39;storeRemove&#39;, arguments);
+                },
+                update: function (store) {
+                    this.fireEventArgs(&#39;storeUpdate&#39;, arguments);
+                },
+                scope: me
+
+            }
+        });
+
+
+    }
+});</pre>
+</body>
+</html>

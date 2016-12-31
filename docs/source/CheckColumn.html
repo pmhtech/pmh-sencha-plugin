@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.grid.column.CheckColumn&#39;, {
+    extend: &#39;Ext.grid.column.CheckColumn&#39;,
+    alias: &#39;widget.pmh-checkcolumn&#39;,
+    text: &#39;&amp;#160;&#39;,
+    sortable: false,
+    draggable: false,
+    tdCls: &#39;no-dirty&#39;,
+    resizable: false,
+    hideable: false,
+    menuDisabled: true,
+    cls: Ext.baseCSSPrefix + &#39;column-header-checkbox&#39;,
+    initComponent: function () {
+        var me = this;
+        Ext.apply(me, {
+            listeners: {
+                checkchange: function (checkcolumn, rowIndex, checked, record, e, eOpts) {
+
+                    var isTrue = checkcolumn.up(&#39;grid&#39;).getStore().find(checkcolumn.dataIndex, false) == -1;
+                    var isFalse = checkcolumn.up(&#39;grid&#39;).getStore().find(checkcolumn.dataIndex, true) == -1;
+                    var headcheck = false;
+
+
+                    if (isTrue == true &amp;&amp; isFalse == false) {
+                        headcheck = true;
+                    }
+
+                    checkcolumn.fireEvent(&#39;headercheckchange&#39;, checkcolumn, headcheck);
+
+                },
+                headercheckchange: function (checkcolumn, checked) {
+
+                    if (checked) {
+                        checkcolumn.getEl().addCls(&#39;x-grid-hd-checker-on&#39;);
+                    } else {
+                        checkcolumn.getEl().removeCls(&#39;x-grid-hd-checker-on&#39;);
+                    }
+                }
+            }
+        });
+        me.callParent(arguments);
+
+    }
+})
+;</pre>
+</body>
+</html>

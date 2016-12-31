@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-override-form-field-Checkbox'>/**
+</span> *
+ */
+Ext.define(&#39;PmhTech.override.form.field.Checkbox&#39;, {
+    override: &#39;Ext.form.field.Checkbox&#39;,
+<span id='PmhTech-override-form-field-Checkbox-method-initComponent'>    initComponent: function () {
+</span>        var me = this;
+        me.callParent(arguments);
+        me.addListener(&#39;afterrender&#39;,function(component){
+            if(component.readOnly===true){
+                component.setReadOnly(component.readOnly);
+            }
+        });
+    },
+
+<span id='PmhTech-override-form-field-Checkbox-method-setReadOnly'>    setReadOnly : function(readOnly){
+</span>        var me = this;
+
+
+        me.callParent(arguments);
+        if(readOnly){
+            me.addCls(&#39;x-item-disabled&#39;);
+        }else{
+            me.removeCls(&#39;x-item-disabled&#39;);
+        } 
+
+
+
+    }
+    
+});</pre>
+</body>
+</html>

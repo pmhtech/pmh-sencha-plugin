@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-Utils'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.Utils&#39;, {
+    extend: &#39;Ext.Base&#39;,
+    statics: {
+<span id='PmhTech-Utils-static-method-showPopup'>        showPopup: function (widgetName, options) {
+</span>            var popup = Ext.ComponentQuery.query(widgetName)[0];
+
+            if (!popup) {
+                popup = Ext.widget(widgetName);
+            }
+
+            if (!options.callbackScope) {
+                    alert(&#39;callbackScope :SCOPE 미지정&#39;);
+            }
+            popup.show();
+            popup.initSingleTone(options);
+
+        },
+
+<span id='PmhTech-Utils-static-method-printHTML'>        printHTML: function (html) {
+</span>
+
+            Ext.callback(function () {
+                var myWindow = window.open(&#39;&#39;, &#39;&#39;, &#39;width=1200,height=1000&#39;);
+                var task = new Ext.util.DelayedTask(function () {
+
+                    myWindow.location.reload();
+                    myWindow.document.write(&#39;&lt;html&gt;&lt;head&gt;&#39;);
+                    myWindow.document.write(&#39;&lt;title&gt;&#39; + &#39;Title&#39; + &#39;&lt;/title&gt;&#39;);
+                    myWindow.document.write(&#39;&lt;/head&gt;&lt;body&gt;&#39;);
+                    myWindow.document.write(html);
+                    myWindow.document.write(&#39;&lt;/body&gt;&lt;/html&gt;&#39;);
+                    myWindow.focus();
+
+                    if (Ext.isIE === true) {
+                        var OLECMDID = 7;
+                        var PROMPT = 1;
+                        var WebBrowser = &#39;&lt;OBJECT ID=&quot;WebBrowser1&quot; WIDTH=0 HEIGHT=0 CLASSID=&quot;CLSID:8856F961-340A-11D0-A96B-00C04FD705A2&quot;&gt;&lt;/OBJECT&gt;&#39;;
+                        document.body.insertAdjacentHTML(&#39;beforeEnd&#39;, WebBrowser);
+                        WebBrowser.ExecWB(OLECMDID, PROMPT);
+                    } else {
+                        myWindow.print();
+                    }
+                });
+
+                task.delay(500);
+            }, Samjong.browserArea);
+
+
+<span id='PmhTech-Utils-static-method-convertListToTree'>        },convertListToTree: function (arrayList, id, parentId, rootId) {
+</span>
+            var rootNodes = [];
+            var traverse = function (nodes, item, index) {
+
+                if (nodes instanceof Array) {
+
+                    return nodes.some(function (node) {
+
+                        if (node[id] === item[parentId]) {
+
+                            node.children = node.children || [];
+                            return node.children.push(arrayList.splice(index, 1)[0]);
+                        }
+
+                        return traverse(node.children, item, index);
+                    });
+                }
+            };
+
+            while (arrayList.length &gt; 0) {
+                arrayList.some(function (item, index) {
+                    if (item[parentId] === rootId) {
+                        return rootNodes.push(arrayList.splice(index, 1)[0]);
+                    }
+
+                    return traverse(rootNodes, item, index);
+                });
+            }
+
+            return rootNodes;
+        },
+<span id='PmhTech-Utils-static-method-getDefaultLanguage'>        getDefaultLanguage : function(){
+</span>
+            var findIdx = SysCode[&#39;COM_000002&#39;].find(&#39;CODE&#39;, &#39;DEFAULT&#39;);
+            var defaultRec = SysCode[&#39;COM_000002&#39;].getAt(findIdx);
+
+
+            return defaultRec.get(&#39;REF1&#39;);
+        }
+
+    }
+});
+</pre>
+</body>
+</html>

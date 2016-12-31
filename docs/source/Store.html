@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-override-data-Store'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.override.data.Store&#39;, {
+    override: &#39;Ext.data.Store&#39;,
+<span id='PmhTech-override-data-Store-method-copy'>    copy: function (isAll) {
+</span>        var me = this;
+
+
+
+        var records = [];
+        me.each(function(r){
+            records.push(r.copy());
+        });
+
+        if(isAll===false){
+            records = Ext.Array.slice(records,1);
+        }
+
+        var store = Ext.create(&#39;Ext.data.Store&#39;,{
+           data : records
+
+        });
+        return store;
+    },
+<span id='PmhTech-override-data-Store-method-loadRawData'>    loadRawData : function(data,append){
+</span>        var me = this;
+
+        me.callParent(arguments);
+
+        if(me.getProxy() &amp;&amp; me.getProxy().type==&#39;memory&#39;){
+
+            me.fireEvent(&#39;load&#39;,me);
+        }
+    }
+
+});</pre>
+</body>
+</html>

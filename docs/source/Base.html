@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.form.field.find.Base&#39;, {
+    extend: &#39;Ext.form.FieldContainer&#39;,
+    alias: &#39;widget.pmhtech-find-base&#39;,
+    layout: {
+        type: &#39;hbox&#39;,
+        align: &#39;bottom&#39;
+    },
+    gridItemId : null,
+
+
+    initComponent: function () {
+        var me = this;
+
+
+        if(Ext.isEmpty(me.handler)){
+            me.handler = function(button){
+
+                var activeTab = this.up(&#39;global_center tabpanel&#39;).getActiveTab();
+                var grid = activeTab.down(&#39;#&#39;+me.gridItemId);
+                grid.getStore().load();
+                grid.show();
+            }
+        }
+
+        Ext.apply(me,{
+            fieldLabel : null,
+            items: [{
+                xtype: Ext.isEmpty(me.fieldXtype)? &#39;textfield&#39; : me.fieldXtype,
+                flex : 1,
+                fieldLabel : me.fieldLabel,
+                emptyText : me.emptyText,
+                name : me.name,
+                value : me.value,
+                allowBlank : me.allowBlank
+            }, {
+                xtype: &#39;button&#39;,
+                width: 89,
+                iconCls : &#39;x-fa fa-search&#39;,
+                text: &#39;Find&#39;,
+                handler: me.handler
+            }]
+
+        });
+        me.callParent(arguments);
+
+    }
+
+
+});</pre>
+</body>
+</html>

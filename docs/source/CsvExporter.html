@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-CsvExporter'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.plugin.CsvExporter&#39;, {
+	extend: &#39;Ext.AbstractPlugin&#39;,
+	alias: &#39;plugin.pmh-grid-csv-exporter&#39;,
+<span id='PmhTech-plugin-CsvExporter-method-init'>	init: function (grid) {
+</span>		var me = this;
+		me.grid = grid;
+		grid.exportCsvFile = Ext.Function.bind(me.exportCsvFile, me);
+	},
+
+<span id='PmhTech-plugin-CsvExporter-method-exportCsvFile'>	/**
+</span>
+	 * @param {String} downloadFileName : 다운로드명
+	 */
+	exportCsvFile: function(downloadFileName){
+		var me              = this,
+			csvContent      = &#39;&#39;,
+			noCsvSupport     = ( &#39;download&#39; in document.createElement(&#39;a&#39;) ) ? false : true,
+			sdelimiter      = noCsvSupport ? &quot;&lt;td&gt;&quot;   : &quot;&quot;,
+			edelimiter      = noCsvSupport ? &quot;&lt;/td&gt;&quot;  : &quot;,&quot;,
+			snewLine        = noCsvSupport ? &quot;&lt;tr&gt;&quot;   : &quot;&quot;,
+			enewLine        = noCsvSupport ? &quot;&lt;/tr&gt;&quot;  : &quot;\r\n&quot;,
+			printableValue  = &#39;&#39;;
+
+		csvContent += snewLine;
+
+
+		var records = [];
+		var store = me.grid.getStore();
+
+		for(var i=0;i&lt;store.getCount();i++){
+			records.push(store.getAt(i));
+		}
+		var gridColumns = me.grid.getColumnManager().getColumns();
+
+
+		for(var j=0;j&lt;gridColumns.length;j++){
+			csvContent += sdelimiter +  gridColumns[j].text + edelimiter;
+		}
+		csvContent += enewLine;
+		for(var i=0;i&lt;records.length;i++) {
+			var data = records[i].data;
+			csvContent += snewLine;
+			csvContent += sdelimiter +  &#39;&#39; + edelimiter;
+			for (var j = 0; j &lt; gridColumns.length; j++) {
+				var dataIndex = gridColumns[j].dataIndex;
+				var value = data[dataIndex];
+				printableValue = ((noCsvSupport) &amp;&amp; value == &#39;&#39;) ? &#39;&#39;  : value;
+				printableValue = String(printableValue).replace(/,/g , &quot;&quot;);
+				printableValue = String(printableValue).replace(/(\r\n|\n|\r)/gm,&quot;&quot;);
+				csvContent += sdelimiter +  printableValue + edelimiter;
+			}
+			csvContent += enewLine;
+		}
+
+		if(&#39;download&#39; in document.createElement(&#39;a&#39;)){
+			/*
+			 This is the code that produces the CSV file and downloads it
+			 to the users computer
+			 */
+
+
+			//일부 IE에서나 FireFox상에서는 Click이벤트 미 작동됨.
+			HTMLElement.prototype.click = function() {
+				var evt = this.ownerDocument.createEvent(&#39;MouseEvents&#39;);
+				evt.initMouseEvent(&#39;click&#39;, true, true, this.ownerDocument.defaultView, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+				this.dispatchEvent(evt);
+			};
+
+			var link = document.createElement(&quot;a&quot;);
+
+
+
+
+			link.setAttribute(&quot;href&quot;, &quot;data:text/csv;charset=UTF-8,\uFEFF,&quot; + encodeURI(csvContent));
+			link.setAttribute(&quot;download&quot;, Ext.isEmpty(downloadFileName) ?  &quot;엑셀파일&quot; : downloadFileName +&quot;.csv&quot;);
+			link.click();
+		} else {
+			var newWin = open(&#39;windowName&#39;,&quot;_blank&quot;);
+			newWin.document.write(&#39;&lt;table border=1&gt;&#39; + csvContent + &#39;&lt;/table&gt;&#39;);
+		}
+	}
+});
+</pre>
+</body>
+</html>

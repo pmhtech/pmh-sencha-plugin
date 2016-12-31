@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.form.field.NumericField&#39;, {
+	extend: &#39;Ext.form.field.Number&#39;,//Extending the NumberField
+	alias: &#39;widget.numericfield&#39;,//Defining the xtype,
+	currencySymbol: null,
+	useThousandSeparator: true,
+	thousandSeparator: &#39;,&#39;,
+	alwaysDisplayDecimals: false,
+	fieldStyle: &#39;text-align: right;&#39;,
+
+	initComponent: function () {
+		if (this.useThousandSeparator &amp;&amp; this.decimalSeparator == &#39;,&#39; &amp;&amp; this.thousandSeparator == &#39;,&#39;)
+			this.thousandSeparator = &#39;.&#39;;
+		else if (this.allowDecimals &amp;&amp; this.thousandSeparator == &#39;.&#39; &amp;&amp; this.decimalSeparator == &#39;.&#39;)
+			this.decimalSeparator = &#39;,&#39;;
+
+		this.callParent(arguments);
+	},
+	getSubmitValue: function () {
+		var me = this,
+			value = me.callParent();
+
+		if (!me.submitLocaleSeparator) {
+			value = value.replace(me.decimalSeparator, &#39;.&#39;);
+		}
+
+		value = value.replace(/[^\d]+/g, &#39;&#39;); //SubmitÇÒ¶§ ÄÞ¸¶Á¦°Å
+
+		return value;
+	},
+	setValue: function (value) {
+		PmhTech.form.field.NumericField.superclass.setValue.call(this, value != null ? value.toString().replace(&#39;.&#39;, this.decimalSeparator) : value);
+
+		this.setRawValue(this.getFormattedValue(this.getValue()));
+	},
+	getFormattedValue: function (value) {
+		if (Ext.isEmpty(value) || !this.hasFormat())
+			return value;
+		else {
+			var neg = null;
+
+			value = (neg = value &lt; 0) ? value * -1 : value;
+			value = this.allowDecimals &amp;&amp; this.alwaysDisplayDecimals ? value.toFixed(this.decimalPrecision) : value;
+
+			if (this.useThousandSeparator) {
+				if (this.useThousandSeparator &amp;&amp; Ext.isEmpty(this.thousandSeparator))
+					throw (&#39;NumberFormatException: invalid thousandSeparator, property must has a valid character.&#39;);
+
+				if (this.thousandSeparator == this.decimalSeparator)
+					throw (&#39;NumberFormatException: invalid thousandSeparator, thousand separator must be different from decimalSeparator.&#39;);
+
+				value = value.toString();
+
+				var ps = value.split(&#39;.&#39;);
+				ps[1] = ps[1] ? ps[1] : null;
+
+				var whole = ps[0];
+
+				var r = /(\d+)(\d{3})/;
+
+				var ts = this.thousandSeparator;
+
+				while (r.test(whole))
+					whole = whole.replace(r, &#39;$1&#39; + ts + &#39;$2&#39;);
+
+				value = whole + (ps[1] ? this.decimalSeparator + ps[1] : &#39;&#39;);
+			}
+
+			return Ext.String.format(&#39;{0}{1}{2}&#39;, (neg ? &#39;-&#39; : &#39;&#39;), (Ext.isEmpty(this.currencySymbol) ? &#39;&#39; : this.currencySymbol + &#39; &#39;), value);
+		}
+	},
+<span id='global-method-parseValue'>	/**
+</span>	 * overrides parseValue to remove the format applied by this class
+	 */
+	parseValue: function (value) {
+		//Replace the currency symbol and thousand separator
+		return PmhTech.form.field.NumericField.superclass.parseValue.call(this, this.removeFormat(value));
+	},
+<span id='global-method-removeFormat'>	/**
+</span>	 * Remove only the format added by this class to let the superclass validate with it&#39;s rules.
+	 * @param {Object} value
+	 */
+	removeFormat: function (value) {
+		if (Ext.isEmpty(value) || !this.hasFormat())
+			return value;
+		else {
+			value = value.toString().replace(this.currencySymbol + &#39; &#39;, &#39;&#39;);
+
+			value = this.useThousandSeparator ? value.replace(new RegExp(&#39;[&#39; + this.thousandSeparator + &#39;]&#39;, &#39;g&#39;), &#39;&#39;) : value;
+
+			return value;
+		}
+	},
+<span id='global-method-getErrors'>	/**
+</span>	 * Remove the format before validating the the value.
+	 * @param {Number} value
+	 */
+	getErrors: function (value) {
+		value = Ext.isDefined(value) ? value : this.getRawValue();
+		return PmhTech.form.field.NumericField.superclass.getErrors.call(this, this.removeFormat(value));
+	},
+	hasFormat: function () {
+		return this.decimalSeparator != &#39;.&#39; || (this.useThousandSeparator == true &amp;&amp; this.getRawValue() != null) || !Ext.isEmpty(this.currencySymbol) || this.alwaysDisplayDecimals;
+	},
+<span id='global-method-onFocus'>	/**
+</span>	 * Display the numeric value with the fixed decimal precision and without the format using the setRawValue, don&#39;t need to do a setValue because we don&#39;t want a double
+	 * formatting and process of the value because beforeBlur perform a getRawValue and then a setValue.
+	 */
+	onFocus: function () {
+		this.setRawValue(this.removeFormat(this.getRawValue()));
+
+		this.callParent(arguments);
+	}
+});
+</pre>
+</body>
+</html>

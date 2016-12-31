@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;PmhTech.override.form.field.Base&#39;, {
+    override: &#39;Ext.form.field.Base&#39;,
+    labelSeparator : &#39;&#39;,
+    initComponent: function () {
+        var me = this;
+        me.callParent(arguments);
+        me.oriFieldLabel =me.fieldLabel;
+        me.oriValue = me.value;
+        me.addListener(&#39;afterrender&#39;,function(component){
+            if(component.allowBlank===false){
+                component.setAllowBlank(component.allowBlank);
+            }
+        });
+    },
+
+    setAllowBlank : function(allowBlank,afterTextLabel){
+        var me = this;
+        if(allowBlank){
+            me.setFieldLabel(me.oriFieldLabel);
+         }else{
+            me.setFieldLabel(me.oriFieldLabel+&#39;&lt;font color=&quot;red&quot;&gt; *&lt;/font&gt;&#39;);
+        }
+    }
+});</pre>
+</body>
+</html>

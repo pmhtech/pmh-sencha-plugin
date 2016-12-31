@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-Format'>/**
+</span> *
+ *
+ *
+ *
+ *
+ */
+Ext.define(&#39;PmhTech.Format&#39;, {
+    extend: &#39;Ext.Base&#39;,
+    statics: {
+
+<span id='PmhTech-Format-static-method-comboRenderer'>		/**
+</span>         *
+         * @param value
+         * @param metaData
+         * @param record
+         * @param rowIndex
+         * @param colIndex
+         * @param store
+         * @returns {string}
+         */
+        comboRenderer : function(value, metaData, record, rowIndex, colIndex, store){
+            var combo = this.getColumns()[colIndex].getEditor();
+            var comboStore = combo.getStore();
+            var findIdx = combo.getStore().find(combo.valueField,value);
+
+            if(findIdx==-1){
+                return value;
+            }
+            var rec =  comboStore.getAt(findIdx);
+
+
+            var value = &#39;&#39;;
+            if(combo.isShowCode===true){
+                value = &#39;[&#39;+rec.get(combo.valueField)+&#39;] &#39;;
+            }
+
+            value +=rec.get(combo.displayField);
+
+            return value;
+        },
+<span id='PmhTech-Format-static-method-dateRenderer'>		/**
+</span>         *
+         * @param value
+         */
+        dateRenderer: function (value) {
+
+            if (Ext.isDate(value)) {
+                return Ext.util.Format.date(value, &#39;Y-m-d&#39;)
+            }
+
+            var year = value.substr(0, 4);
+            var month = value.substr(4, 2);
+            var day = value.substr(6, 2);
+
+            return Ext.String.format(&#39;{0}-{1}-{2}&#39;, year, month, day);
+        },
+<span id='PmhTech-Format-static-method-numberRenderer'>		/**
+</span>         *
+         * @param value
+         */
+        numberRenderer: function (value) {
+            return Ext.util.Format.number(value, &#39;#,###&#39;)
+        }
+<span id='PmhTech-Format-static-method-inactiveRenderer'>		/**
+</span>         *
+         * @param value
+         * @returns {string}
+         */
+        ,inactiveRenderer: function (value) {
+            return value == &#39;N&#39; ? &#39;&#39; : value;
+        }
+    }
+});</pre>
+</body>
+</html>

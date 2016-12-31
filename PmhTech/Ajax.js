@@ -1,6 +1,25 @@
 /**
  * Ajax 간소화 유틸리티 confirm Message와 success Message를 처리합니다.
  *
+ *
+ * 		@example
+ *     	PmhTech.Ajax.request({
+	 *			url : '/resources/json/AjaxTestData.json',
+ 	 *			method : 'GET',
+ 	 *			confirmMsg : {
+ 	 *				title : '확인',
+ 	 *				message : '저장하시겠습니까?'
+ 	 *			},
+ 	 *			successMsg : {
+ 	 *				title : '확인',
+ 	 *				message : '정상처리되었습니다'
+ 	 *			},
+ 	 *			success : function(resObj){
+ 	 *				alert('title :'+ resObj.title +'message :'+ resObj.message);
+ 	 *
+ 	 *			},
+ 	 *			scope : this
+ 	 *		});
  */
 
 Ext.define('PmhTech.Ajax', {

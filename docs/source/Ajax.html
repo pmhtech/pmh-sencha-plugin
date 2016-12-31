@@ -18,6 +18,25 @@
   <pre class="prettyprint lang-js"><span id='PmhTech-Ajax'>/**
 </span> * Ajax 간소화 유틸리티 confirm Message와 success Message를 처리합니다.
  *
+ *
+ * 		@example
+ *     	PmhTech.Ajax.request({
+	 *			url : &#39;/resources/json/AjaxTestData.json&#39;,
+ 	 *			method : &#39;GET&#39;,
+ 	 *			confirmMsg : {
+ 	 *				title : &#39;확인&#39;,
+ 	 *				message : &#39;저장하시겠습니까?&#39;
+ 	 *			},
+ 	 *			successMsg : {
+ 	 *				title : &#39;확인&#39;,
+ 	 *				message : &#39;정상처리되었습니다&#39;
+ 	 *			},
+ 	 *			success : function(resObj){
+ 	 *				alert(&#39;title :&#39;+ resObj.title +&#39;message :&#39;+ resObj.message);
+ 	 *
+ 	 *			},
+ 	 *			scope : this
+ 	 *		});
  */
 
 Ext.define(&#39;PmhTech.Ajax&#39;, {

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='PmhTech-plugin-grid-Exporter'>/**
+</span> *
+ *  CSV 또는 Excel로 Exporting Plugin 입니다
+ *
+ *  ExtJS Premium에 export가 내장되어 있으나 대용량처리(3천건이상)시에 Export하는 속도가 느리고
+ *  빌드버전에서 간헐적으로 오류가 발생합니다.
+ *  특히 CSV파일 Export할경우 한글이 깨져서 나오는 현상을 수정하였습니다.
+ *
+ *
+ *  SheetJS를 참고하여 만들었으니
+ *
+ *  https://github.com/SheetJS/js-xlsx/blob/master/dist/xlsx.core.min.js
+ *
+ *  위파일을 반드시 다운받으신뒤 Requires 시켜주시길 바랍니다.
+ *
+ *
+ *
+ *
+ *
+ *         @example
+ *		   Ext.create(&#39;Ext.grid.Panel&#39;, {
+ *		       renderTo: Ext.getBody(),
+ *		       height: 500,
+ *		       plugins: [{
+ *		           ptype: &#39;pmh-grid-exporter&#39;
+ *		       }],
+ *		       store: Ext.create(&#39;Ext.data.Store&#39;, {
+ *		           autoLoad: true,
+ *		           proxy: {
+ *		               type: &#39;ajax&#39;,
+ *		               url: &#39;/resources/json/GridData.json&#39;,
+ *
+ *		               reader: {
+ *		                   type: &#39;json&#39;,
+ *		                   rootProperty: &#39;data&#39;
+ *		               }
+ *		           }
+ *		       }),
+ *		       columns: [
+ *		           {text: &#39;Company&#39;, dataIndex: &#39;Company&#39;},
+ *		           {text: &#39;Price&#39;, dataIndex: &#39;Price&#39;},
+ *		           {text: &#39;Change&#39;, dataIndex: &#39;Change&#39;},
+ *		           {text: &#39;%Change&#39;, dataIndex: &#39;%Change&#39;},
+ *		           {text: &#39;LastUpdate&#39;, dataIndex: &#39;LastUpdate&#39;}
+ *		       ],
+ *		       dockedItems: [{
+ *		           xtype: &#39;toolbar&#39;,
+ *		           dock: &#39;top&#39;,
+ *		           items: [{
+ *		               xtype: &#39;button&#39;,
+ *		               text: &#39;CSV다운로드&#39;,
+ *		               handler: function (button) {
+ *
+ *		                   var grid = button.up(&#39;grid&#39;);
+ *		                   grid.saveDocumentAs({
+ *		                       type: &#39;csv&#39;,
+ *		                       fileName: &#39;TestCSV.csv&#39;
+ *		                   });
+ *		               }
+ *		           }, {
+ *		               xtype: &#39;button&#39;,
+ *		               text: &#39;Excel 다운로드&#39;,
+ *		               handler: function (button) {
+ *
+ *		                   var grid = button.up(&#39;grid&#39;);
+ *		                   grid.saveDocumentAs({
+ *		                       type: &#39;xlsx&#39;,
+ *		                       title: &#39;테스트시트1&#39;,
+ *		                       fileName: &#39;TestXlsx.xlsx&#39;
+ *		                   });
+ *
+ *		               }
+ *		           }]
+ *		       }]
+ *		   });
+ *
+ */
+Ext.define(&#39;PmhTech.plugin.grid.Exporter&#39;, {
+    extend: &#39;Ext.AbstractPlugin&#39;,
+    alias: &#39;plugin.pmh-grid-exporter&#39;,
+
+<span id='PmhTech-plugin-grid-Exporter-method-init'>    init: function (grid) {
+</span>        var me = this;
+        me.grid = grid;
+        me.grid.saveDocumentAs = Ext.Function.bind(me.saveDocumentAs, me);
+    },
+<span id='PmhTech-plugin-grid-Exporter-method-getCsvData'>    getCsvData: function () {
+</span>
+
+        //일부 IE에서나 FireFox상에서는 Click이벤트 미 작동됨.
+        HTMLElement.prototype.click = function () {
+            var evt = this.ownerDocument.createEvent(&#39;MouseEvents&#39;);
+            evt.initMouseEvent(&#39;click&#39;, true, true, this.ownerDocument.defaultView, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+            this.dispatchEvent(evt);
+        };
+
+
+        var me = this,
+            grid = this.grid,
+            csvContent = &#39;&#39;,
+            noCsvSupport = ( &#39;download&#39; in document.createElement(&#39;a&#39;) ) ? false : true,
+            sdelimiter = noCsvSupport ? &quot;&lt;td&gt;&quot; : &quot;&quot;,
+            edelimiter = noCsvSupport ? &quot;&lt;/td&gt;&quot; : &quot;,&quot;,
+            snewLine = noCsvSupport ? &quot;&lt;tr&gt;&quot; : &quot;&quot;,
+            enewLine = noCsvSupport ? &quot;&lt;/tr&gt;&quot; : &quot;\r\n&quot;,
+            printableValue = &#39;&#39;;
+
+        csvContent += snewLine;
+
+
+        var records = [];
+        var store = grid.getStore();
+
+        for (var i = 0; i &lt; store.getCount(); i++) {
+            records.push(store.getAt(i));
+        }
+        var gridColumns = grid.getColumnManager().getColumns();
+        var startIndex = gridColumns[0].xtype == &#39;rownumberer&#39; ? 1 : 0;
+
+        for (var j = startIndex; j &lt; gridColumns.length; j++) {
+            csvContent += sdelimiter + gridColumns[j].text + edelimiter;
+        }
+
+        csvContent += enewLine;
+        for (var i = 0; i &lt; records.length; i++) {
+            var data = records[i].data;
+
+            //csvContent += snewLine;
+            //csvContent += sdelimiter + &#39;&#39; + edelimiter;
+            for (var j = startIndex; j &lt; gridColumns.length; j++) {
+
+                var dataIndex = gridColumns[j].dataIndex;
+
+                var value = data[dataIndex] == null ? &#39;&#39; : data[dataIndex];
+
+                printableValue = ((noCsvSupport) &amp;&amp; value == &#39;&#39;) ? &#39;&#39; : value;
+                printableValue = String(printableValue).replace(/,/g, &quot;&quot;);
+                printableValue = String(printableValue).replace(/(\r\n|\n|\r)/gm, &quot;&quot;);
+                csvContent += sdelimiter + printableValue + edelimiter;
+            }
+            csvContent += enewLine;
+        }
+        return csvContent
+    },
+<span id='PmhTech-plugin-grid-Exporter-method-saveData'>    saveData: function (blob, fileName) {
+</span>
+
+        if (window.navigator.msSaveBlob) {
+            // FOR IE BROWSER
+            navigator.msSaveBlob(blob, fileName);
+        } else {
+            // FOR OTHER BROWSERS
+            var link = document.createElement(&quot;a&quot;);
+            var csvUrl = URL.createObjectURL(blob);
+            link.href = csvUrl;
+            link.style = &quot;visibility:hidden&quot;;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    },
+<span id='PmhTech-plugin-grid-Exporter-method-downloadCSV'>    downloadCSV: function (fileName) {
+</span>
+
+        var me = this;
+        var blob = new Blob([&#39;\uFEFF&#39;, me.getCsvData()], {
+            type: &quot;application/csv;charset=utf-8;&quot;
+        });
+        me.saveData(blob, fileName);
+
+
+    },
+<span id='PmhTech-plugin-grid-Exporter-method-convertXLSX'>    convertXLSX: function () {
+</span>        var tempData = this.getCsvData().split(&#39;\r\n&#39;);
+        var data = [];
+
+        for (var i = 0; i &lt; tempData.length; i++) {
+            data.push(tempData[i].split(&#39;,&#39;));
+        }
+        var ws = {};
+        var range = {s: {c: 10000000, r: 10000000}, e: {c: 0, r: 0}};
+        for (var R = 0; R != data.length; ++R) {
+            for (var C = 0; C != data[R].length; ++C) {
+                if (range.s.r &gt; R) range.s.r = R;
+                if (range.s.c &gt; C) range.s.c = C;
+                if (range.e.r &lt; R) range.e.r = R;
+                if (range.e.c &lt; C) range.e.c = C;
+                var cell = {v: data[R][C]};
+                if (cell.v == null) continue;
+                var cell_ref = XLSX.utils.encode_cell({c: C + 1, r: R + 1});
+
+                /* TEST: proper cell types and value handling */
+                if (typeof cell.v === &#39;number&#39;) cell.t = &#39;n&#39;;
+                else if (typeof cell.v === &#39;boolean&#39;) cell.t = &#39;b&#39;;
+                else if (cell.v instanceof Date) {
+                    cell.t = &#39;n&#39;;
+                    cell.z = XLSX.SSF._table[14];
+                    //cell.v = datenum(cell.v);
+                }
+                else cell.t = &#39;s&#39;;
+                ws[cell_ref] = cell;
+            }
+        }
+
+        /* TEST: proper range */
+        if (range.s.c &lt; 10000000) ws[&#39;!ref&#39;] = XLSX.utils.encode_range(range);
+
+        return ws;
+    },
+<span id='PmhTech-plugin-grid-Exporter-method-downloadXLSX'>    downloadXLSX: function (title, fileName) {
+</span>
+
+        var me = this;
+        var wb = {
+            SheetNames: [],
+            Sheets: {}
+        };
+        wb.SheetNames.push(title);
+        wb.Sheets[title] = me.convertXLSX();
+
+        var wopts = {bookType: &#39;xlsx&#39;, bookSST: false, type: &#39;binary&#39;};
+        var wbout = XLSX.write(wb, wopts);
+
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) &amp; 0xFF;
+            return buf;
+        }
+
+        var blob = new Blob([s2ab(wbout)], {type: &quot;&quot;});
+        me.saveData(blob, fileName);
+    },
+
+<span id='PmhTech-plugin-grid-Exporter-method-saveDocumentAs'>    /**
+</span>     * CSV 또는 엑셀 다운로드 함수
+     *
+     *     @example
+     *     grid.saveDocumentAs({
+     *           type: &#39;xlsx&#39;,
+     *           title: &#39;테스트시트1&#39;,
+     *           fileName: &#39;TestXlsx.xlsx&#39;
+     *      });
+     *
+     *
+     * @param {Object} options 파라미터는 Object로 넘겨야 하며 사항은 아래와 같습니다
+     * @param {String} options.type : 엑셀인경우 : xlsx , CSV인경우 : csv
+     * @param {String} options.title : 엑셀인경우 SheetName 값입니다.
+     * @param {String} options.fileName : 파일명을 입력합니다.(반드시 확장자까지 입력하셔야만 합니다.)
+     */
+    saveDocumentAs: function (options) {
+
+        var me = this;
+        var type = options.type || &#39;csv&#39;;
+        var fileName = options.fileName || &#39;defaultCSV&#39;;
+        var title = options.title || &#39;Sheet1&#39;;
+
+        if (type == &#39;csv&#39;) {
+            me.downloadCSV(fileName);
+        }
+
+        if (type == &#39;xlsx&#39;) {
+            me.downloadXLSX(title, fileName);
+        }
+    }
+});
+
+
+</pre>
+</body>
+</html>

@@ -45,7 +45,7 @@
  *		           autoLoad: true,
  *		           proxy: {
  *		               type: &#39;ajax&#39;,
- *		               url: &#39;/resources/json/GridData.json&#39;,
+ *		               url: &#39;resources/json/GridData.json&#39;,
  *
  *		               reader: {
  *		                   type: &#39;json&#39;,
@@ -71,7 +71,7 @@
  *		                   var grid = button.up(&#39;grid&#39;);
  *		                   grid.saveDocumentAs({
  *		                       type: &#39;csv&#39;,
- *		                       fileName: &#39;TestCSV.csv&#39;
+ *		                       fileName: &#39;default&#39;
  *		                   });
  *		               }
  *		           }, {
@@ -82,8 +82,8 @@
  *		                   var grid = button.up(&#39;grid&#39;);
  *		                   grid.saveDocumentAs({
  *		                       type: &#39;xlsx&#39;,
- *		                       title: &#39;테스트시트1&#39;,
- *		                       fileName: &#39;TestXlsx.xlsx&#39;
+ *		                       title: &#39;Sheet1&#39;,
+ *		                       fileName: &#39;defulat&#39;
  *		                   });
  *
  *		               }
@@ -256,29 +256,29 @@ Ext.define(&#39;PmhTech.plugin.grid.Exporter&#39;, {
      *     @example
      *     grid.saveDocumentAs({
      *           type: &#39;xlsx&#39;,
-     *           title: &#39;테스트시트1&#39;,
-     *           fileName: &#39;TestXlsx.xlsx&#39;
+     *           title: &#39;Sheet1&#39;,
+     *           fileName: &#39;default.xlsx&#39;
      *      });
      *
      *
      * @param {Object} options 파라미터는 Object로 넘겨야 하며 사항은 아래와 같습니다
      * @param {String} options.type : 엑셀인경우 : xlsx , CSV인경우 : csv
      * @param {String} options.title : 엑셀인경우 SheetName 값입니다.
-     * @param {String} options.fileName : 파일명을 입력합니다.(반드시 확장자까지 입력하셔야만 합니다.)
+     * @param {String} options.fileName : 파일명을 입력합니다.
      */
     saveDocumentAs: function (options) {
 
         var me = this;
         var type = options.type || &#39;csv&#39;;
-        var fileName = options.fileName || &#39;defaultCSV&#39;;
+        var fileName = options.fileName || &#39;default&#39;;
         var title = options.title || &#39;Sheet1&#39;;
 
         if (type == &#39;csv&#39;) {
-            me.downloadCSV(fileName);
+            me.downloadCSV(fileName+&#39;.csv&#39;);
         }
 
         if (type == &#39;xlsx&#39;) {
-            me.downloadXLSX(title, fileName);
+            me.downloadXLSX(title, fileName+&#39;.xlsx&#39;);
         }
     }
 });

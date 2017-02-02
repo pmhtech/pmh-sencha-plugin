@@ -28,7 +28,7 @@
  *		           autoLoad: true,
  *		           proxy: {
  *		               type: 'ajax',
- *		               url: '/resources/json/GridData.json',
+ *		               url: 'resources/json/GridData.json',
  *
  *		               reader: {
  *		                   type: 'json',

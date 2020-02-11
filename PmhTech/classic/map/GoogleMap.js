@@ -7,16 +7,19 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
     latlng:[0,0],
     map : null,
     googleMap: null,
-    openLayerMap: null,
+    openLayer: null,
 
 
 
     setZoom : function(value){
         this.googleMap.setZoom(value);
-        this.map.getView().setZoom(value);
+        this.openLayer.getView().setZoom(value);
+
 
     },
     getZoom : function(){
+
+        this.googleMap.setZoom(view.getZoom());
         var zoom = this.googleMap.getZoom();
         return zoom;
 
@@ -29,12 +32,12 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
 
         var center = ol.proj.transform([lng,lat],  'EPSG:4326','EPSG:3857');
 
-        this.map.getView().setCenter(center);
+        this.openLayer.getView().setCenter(center);
         this.googleMap.setCenter(new google.maps.LatLng(lat, lng));
 
     },
     getLatLng : function(){
-
+        return[this.googleMap.getCenter().lat(),this.googleMap.getCenter().lng()]
 
     },
 
@@ -54,42 +57,113 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
                 '</div>',
             listeners : {
                 afterrender : me.onAfterRender,
-                drawPoly : me.onDrawPoly,
                 scope : me
             }
         });
         me.callParent(arguments);
 
     },
-    onDrawPoly : function(){
-        var me = this;
-        draw_interaction = new ol.interaction.Draw({
-            source: me.vectorLayer.getSource(),
-            type: /** @type {ol.geom.GeometryType} */'Polygon'
-        });
 
-        // add it to the map
-        me.map.addInteraction(draw_interaction);
-
-        // when a new feature has been drawn...
-        draw_interaction.on('drawend', function (event) {
-            // create a unique id
-            // it is later needed to delete features
-            var id = Ext.id();
-            // give the feature this id
-            event.feature.setId(id);
-            // save the changed data
-            //saveData();
-        });
-
-    },
     onAfterRender : function(comp){
         var me = this;
-        me.loadMap();
+        me.initOpernLayer();
+
+        var geoStyle={
+            fill : {
+                color: 'rgba(255, 255, 255, 0.2)'
+            },
+            stroke:{
+                color: '#ffcc33',
+                width: 2
+            },image:{
+                radius: 7,
+                fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                })
+            }
+
+        };
+
+
+        me.createVector('site',geoStyle);
+
+        var geometry = {"type":"Polygon","coordinates":[[[12895668.907950811,3996700.712448078],[12203687.030629972,2354899.6350341886],[13340420.566366304,2408851.6032803226],[12895668.907950811,3996700.712448078]]]};
+
+        me.setGeometry('site','1',geometry);
+        //me.drawGeometry('Polygon','site','1',);
+
+    },
+    getLayer: function(layerName){
+        var layers =this.openLayer.getLayers().getArray();
+
+        for(var i=0;layers.length;i++){
+            if(layers[i].get('name')== layerName){
+                return layers[i];
+            }
+        }
+        return null;
+    },
+
+
+
+    drawGeometry(geomType,layoutName,id){
+        var layout = this.getLayer(layoutName);
+        id= layoutName + '_' + id;
+
+        var drawEvent = new ol.interaction.Draw({
+            source: layout.getSource(),
+            type: geomType
+        });
+        this.openLayer.addInteraction(drawEvent);
+        drawEvent.on('drawend', function (event) {
+            // give the feature this id
+            event.feature.setId(id);
+
+        });
+
+
+    },
+    setGeometry:function(layoutName,id,geometry){
+        var format = new ol.format['GeoJSON']();
+
+        var layout = this.getLayer(layoutName);
+        id= layoutName + '_' + id;
+        var feature = layout.getSource().getFeatureById(id);
+        if(!feature){
+            feature= new ol.Feature();
+            feature.setId(id);
+            layout.getSource().addFeature(feature);
+        }
+
+        feature.setGeometry(new ol.geom[geometry.type](geometry.coordinates));
+
+
+    },
+    getGeometry :function(layoutName,id){
+
+        var format = new ol.format['GeoJSON']();
+
+        var layout = this.getLayer(layoutName);
+        id= layoutName + '_' + id;
+        var feature = layout.getSource().getFeatureById(id)
+        return format.writeGeometryObject(feature.getGeometry());
+    },
+    createVector : function(vectorName, geoStyle){
+        var vector = new ol.layer.Vector({
+            name: vectorName,
+            source: new ol.source.Vector(),
+            style: new ol.style.Style({
+                fill: new ol.style.Fill(geoStyle.fill),
+                stroke: new ol.style.Stroke(geoStyle.stroke),
+                image: new ol.style.Circle(geoStyle.image)
+            })
+        });
+
+        this.openLayer.addLayer(vector);
 
     },
 
-    loadMap : function(){
+    initOpernLayer : function(){
         var gmap = new google.maps.Map(document.getElementById('gmap'), {
             disableDefaultUI: true,
             keyboardShortcuts: false,
@@ -111,31 +185,10 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
             gmap.setZoom(view.getZoom());
         });
 
-        var vector_layer = new ol.layer.Vector({
-            name: 'my_vectorlayer',
-            source: new ol.source.Vector(),
-            style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 255, 255, 0.2)'
-                }),
 
-                stroke: new ol.style.Stroke({
-                    color: '#ffcc33',
-                    width: 2
-                }),
-
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({
-                        color: '#ffcc33'
-                    })
-                })
-            })
-        });
 
         var olMapDiv = document.getElementById('olmap');
         var map = new ol.Map({
-            layers: [vector_layer],
             interactions: ol.interaction.defaults({
                 altShiftDragRotate: false,
                 dragPan: false,
@@ -151,36 +204,6 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         gmap.controls[google.maps.ControlPosition.TOP_LEFT].push(olMapDiv);
 
         this.googleMap = gmap;
-        this.map = map;
-        this.vectorLayer = vector_layer;
-
-        this.fireEvent('drawPoly');
-    },
-
-    saveData : function(){
-
-
-    },
-    initMap : function(comp){
-
-
-
-    },
-    getValues:function(){
-
-
-    },
-    setValues: function(){
-
-    },
-    setValue:function(layerName,geoJson){
-
-    },
-    getValue:function(layerName){
-
+        this.openLayer = map;
     }
-
-
-
-
 });

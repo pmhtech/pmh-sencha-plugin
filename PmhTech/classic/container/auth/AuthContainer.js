@@ -1,4 +1,4 @@
-Ext.define('PmhTech.container.AuthContainer',{
+Ext.define('PmhTech.container.auth.AuthContainer',{
     extend : 'Ext.container.Container',
     alias : 'widget.pmh-auth-container',
     margin : '0 0 5 0',

@@ -1,6 +1,6 @@
-Ext.define('PmhTech.classic.map.GoogleMap',{
-    extend : 'Ext.container.Container',
-    alias : 'widget.pmh-googlemap',
+Ext.define('PmhTech.container.gis.OpenLayer', {
+    extend: 'Ext.container.Container',
+    alias: 'widget.pmh-openlayer',
     zoom: 10,
     latlng:[0,0],
     googleMap: null,
@@ -33,7 +33,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
 
 
     setZoom : function(value){
-        this.googleMap.setZoom(value);
+        //this.googleMap.setZoom(value);
         this.openLayer.getView().setZoom(value);
 
 
@@ -75,12 +75,12 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
             tpl:[
 
                 '<div style=" position:relative;width:800px;height:600px" class="pmh-open-layer">',
-                    '<div class="map">',
-                        '<div id="'+Ext.id()+ '" class="googlemap"></div>',
-                        '<div id="'+Ext.id()+ '" class="openlayer"></div>',
-                    '</div>',
+                '<div class="map">',
+                '<div id="'+Ext.id()+ '" class="googlemap"></div>',
+                '<div id="'+Ext.id()+ '" class="openlayer"></div>',
                 '</div>',
-                ],
+                '</div>',
+            ],
             listeners : {
                 afterrender : me.onAfterRender,
                 scope : me
@@ -93,7 +93,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
     onAfterRender : function(comp){
         var me = this;
         me.initOpenLayer();
-        me.addEventSelect();
+      //  me.addEventSelect();
 
 
 
@@ -113,7 +113,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         return null;
     },
     addEventSelect : function(){
-        var me = this;
+      /*  var me = this;
         //me.removeGeoEvents();
 
         select_interaction = new ol.interaction.Select();
@@ -136,7 +136,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         select_interaction.on('click',function(e){
             debugger;
 
-        });
+        });*/
 
     },
     drawGeometry(geomType,layoutName,id){
@@ -215,7 +215,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         var me = this;
 
         me.getEl().on('mouseenter',function(){
-           console.log('mouseenter')
+            console.log('mouseenter')
 
         });
 
@@ -229,7 +229,6 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
             disableDefaultUI: true,
             keyboardShortcuts: false,
             draggable: false,
-            zoom:1.0,
             disableDoubleClickZoom: true,
             scrollwheel: false,
             streetViewControl: false
@@ -242,7 +241,7 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         view.on('change:center', function() {
             var center = ol.proj.transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
             gmap.setCenter(new google.maps.LatLng(center[1], center[0]));
-            gmap.setZoom(view.getZoom());
+            //gmap.setZoom(view.getZoom());
         });
         view.on('change:resolution', function() {
             gmap.setZoom(view.getZoom());

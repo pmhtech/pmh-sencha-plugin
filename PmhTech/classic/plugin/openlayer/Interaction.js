@@ -7,7 +7,9 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         me.openLayer= openLayer;
 
         me.openLayer.addSelectInteraction = Ext.Function.bind(me.addSelectInteraction, me);
+        me.openLayer.getSelection = Ext.Function.bind(me.getSelection, me);
         me.openLayer.onDraw = Ext.Function.bind(me.onDraw, me);
+        //me.openLayer.onModify = Ext.Function.bind(me.onModify, me);
     },
     interaction:{
         select : null,
@@ -18,7 +20,12 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         var me = this;
         var openLayer =me.openLayer.openLayer;
 
+        if(eventName=='select'){
+            me.openLayer.isSelect=false;
+        }
+
         openLayer.removeInteraction(me.interaction[eventName]);
+        me.interaction[eventName]=null;
 
     },
     addInteraction : function(eventName,event){
@@ -30,7 +37,26 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         openLayer.addInteraction(event);
 
     },
+    getSelection: function(){
+        var me = this;
 
+        var props = Ext.pluck(me.interaction.select.getFeatures().getArray(),'values_');
+        var result =[];
+        for(var i=0;i<props.length;i++) {
+            var prop = props[0];
+
+            result.push({
+                layoutName :prop.layoutName,
+                geoId :prop.geoId,
+                geometry :{
+                    type: prop.geometry.getType(),
+                    coordinates : prop.geometry.getCoordinates()
+                }
+            });
+        }
+        return result;
+
+    },
     addSelectInteraction:function(){
         var me = this;
         var selectEvent = new ol.interaction.Select();
@@ -40,11 +66,19 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         var selectFeatures = selectEvent.getFeatures();
 
         selectFeatures.on('add', function (event) {
-            var asdf = me;
-            var props = event.element.getProperties();
 
-            me.openLayer.getGeometry(props.layoutName,props.geoId);
+            var props = me.getSelection();
+            me.openLayer.isSelect=true;
+            var data = event.element.getProperties();
 
+            var layoutName = data.layoutName;
+            var geoId = data.geoId;
+            var geometry =  {
+                type: data.geometry.getType(),
+                coordinates : data.geometry.getCoordinates()
+            };
+
+            me.openLayer.fireEvent('select',layoutName,geoId,geometry);
 
         });
 
@@ -62,12 +96,15 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
             type: geomType
         });
         me.removeInteraction('select');
+        me.removeInteraction('draw');
         me.addInteraction('draw',drawEvent);
 
 
-        me.openLayer.fireEvent('drawstart',geomType,layoutName,id);
+     //   me.openLayer.fireEvent('drawstart',geomType,layoutName,id);
 
         drawEvent.on('drawend', function (event) {
+
+
 
 
             var featureId = me.openLayer.getFeatureId(this.layoutName,this.geoId);
@@ -76,8 +113,13 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
             event.feature.setProperties({
                 layoutName: layoutName,
                 geoId : geoId
-            })
-            me.openLayer.fireEvent('drawend',this.geomType,this.layoutName,this.geoId);
+            });
+
+            var geometry = me.openlayer.getGeometry(layoutName,geoId);
+
+
+
+         //   me.openLayer.fireEvent('drawend',this.geomType,this.layoutName,this.geoId);
             me.addSelectInteraction();
 
         },{
@@ -86,6 +128,9 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
             geoId : geoId
         });
     },
+    onMoidfy: function () {
+
+    }
 
 
 });

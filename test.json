@@ -1,0 +1,25 @@
+{
+  "observeAt": "2020-01-23 10:05:00", // 관측시각
+  "sensorId": "someSensorId", // 센서ID
+  "payloads": [{
+      "sensorType": 7,  // "미세먼지(PM10)","μg/㎥" 
+      "value": 30.5
+    },
+    {
+      "sensorType": 8,// "초미세먼지(PM2.5)","μg/㎥"
+      "value": 28.3
+    },
+    {
+      "sensorType": 23,// "극초미세먼지(PM1.0)","μg/㎥"
+      "value": 21.2
+    },
+    {
+      "sensorType": 1,    // "온도","°C"
+      "value": -12.3
+    },
+    {
+      "sensorType": 2,      // "습도","%"
+      "value": 17.3
+    }
+  ]
+}

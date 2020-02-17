@@ -15,6 +15,7 @@ Ext.define('PmhTech.plugin.map.GoogleMap', {
             disableDefaultUI: true,
             keyboardShortcuts: false,
             draggable: false,
+            //mapTypeId: 'satellite',
             disableDoubleClickZoom: true,
             scrollwheel: false,
             streetViewControl: false

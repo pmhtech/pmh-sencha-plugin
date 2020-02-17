@@ -16,21 +16,21 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
     latlng:[0,0],
     googleMap: null,
     openLayer: null,
-    data : {
-        center:{
+    style : 'position:relative',
+    isSelect : false,
+    onUnselect : function(coordinates){
 
-        },layout : {
-
-
+        var me = this;
+        if(me.isSelect &&me.getSelection().length==0){
+            me.isSelect=false;
+            me.fireEvent('unselect',me,coordinates);
         }
-
     },
 
-
-
-
-    style : 'position:relative',
-
+    onMapClick : function(coordinates){
+        var me = this;
+        me.fireEvent('mapclick',me,coordinates);
+    },
     initOpenLayer : function(me){
 
         var me = this;
@@ -48,7 +48,9 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
             me.googleMap.setZoom(view.getZoom());
         });
 
+        var content = this.getEl().dom.getElementsByClassName('openlayer-popup')[0];
 
+        var overlay = new ol.Overlay(({ element:content }));
         var olMapDiv = this.getEl().dom.getElementsByClassName('openlayer')[0];
         var map = new ol.Map({
             interactions: ol.interaction.defaults({
@@ -57,10 +59,36 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
                 rotate: false
             }).extend([new ol.interaction.DragPan({kinetic: null})]),
             target: olMapDiv,
-          //  overlays : [overlay],
+            overlays : [overlay],
             view: view
         });
+
+        map.on('singleclick', function (evt) {
+            var coordinate = evt.coordinate;
+
+            // EPSG:3857 - Google Mercator
+            // EPSG:4326 - WGS84 경위도
+            me.data.clickPosition = coordinate;
+            me.onMapClick(coordinate);
+
+
+            setTimeout(function(){
+                me.onUnselect(coordinate);
+            },150);
+
+
+
+
+
+
+
+
+
+            overlay.setPosition(coordinate);
+        });
+
         view.setCenter([0, 0]);
+
         view.setZoom(me.zoom);
         me.googleMap.setZoom(me.zoom);
 
@@ -73,9 +101,15 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
     initComponent: function(){
         var me= this;
         Ext.apply(me,{
-            data :{
-                width : 100,
-                height : 100
+            data : {
+                clickPosition :[],
+                center:{
+
+                },layout : {
+
+
+                }
+
             },
             tpl:[
 
@@ -153,6 +187,10 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
     draw : function(geomType,layoutName,id){
         this.onDraw(geomType,layoutName,id);
     },
+    moidfy : function(){
+        this.onModify()
+
+    },
     getFeatureId: function(layoutName,geoId){
         var me = this;
         return me.id+'-'+layoutName+'-'+geoId;
@@ -187,13 +225,15 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
         var layout = this.getLayer(layoutName);
         var featureId = this.getFeatureId(layoutName,geoId);
         var feature = layout.getSource().getFeatureById(featureId)
-        return format.writeGeometryObject(feature.getGeometry());
+        var result =format.writeGeometryObject(feature.getGeometry());
+        return result;
     },
-    createLayer : function(layerName, geoStyle){
+    createLayer : function(layerName, zIndex, geoStyle){
 
         var me = this;
         var layer = new ol.layer.Vector({
             name: layerName,
+            zIndex : zIndex,
             source: new ol.source.Vector(),
             style: new ol.style.Style({
                 fill: new ol.style.Fill(geoStyle.fill),

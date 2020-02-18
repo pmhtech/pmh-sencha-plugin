@@ -1,41 +1,59 @@
-Ext.define('PmhTech.container.gis.OpenLayer', {
+Ext.define('PmhTech.container.gis.GisContainer', {
     extend: 'Ext.container.Container',
-    alias: 'widget.pmh-openlayer',
+    alias: 'widget.pmh-gis-container',
 
     requires: [
         'PmhTech.plugin.map.GoogleMap',
         'PmhTech.plugin.openlayer.Interaction'
     ],
-
+    defaultGCS : 'EPSG:3857',
     zoom: 10,
     plugins : [{
         ptype : 'pmh-google-map'
     },{
         ptype : 'pmh-openlayer-interaction'
     }],
+    popup : {
+        selectPopup : null,
+        clickPopup : null
+    },
     latlng:[0,0],
     googleMap: null,
     openLayer: null,
     style : 'position:relative',
-    isSelect : false,
-    onUnselect : function(coordinates){
 
+    showPopup : function(popupType,coordinates){
         var me = this;
-        if(me.isSelect &&me.getSelection().length==0){
-            me.isSelect=false;
-            me.fireEvent('unselect',me,coordinates);
-        }
+
+        var popupName = popupType+'Popup';
+        var overlay = me.openLayer.getOverlayById(popupName);
+        overlay.setPosition(coordinates);
+        me.popup[popupName].show();
+        overlay.setVisible(true);
+
+    },
+    hidePopup : function(popupType){
+        var me = this;
+        var popupName = popupType+'Popup';
+        var overlay = me.openLayer.getOverlayById(popupName);
+        overlay.setVisible(false);
+
+        me.popup[popupName].hide();
     },
 
-    onMapClick : function(coordinates){
-        var me = this;
-        me.fireEvent('mapclick',me,coordinates);
+    test : function(coordinates){
+
+        for(var i=0;i<coordinates.length;i++){
+            var result=ol.proj.transform(coordinates[i], 'EPSG:3857', 'EPSG:4326');
+
+        }
     },
     initOpenLayer : function(me){
 
         var me = this;
 
         var view = new ol.View({
+         //   projection: 'EPSG:4326',
             // make sure the view doesn't go beyond the 22 zoom levels of Google Maps
             maxZoom: 21
         });
@@ -48,10 +66,42 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
             me.googleMap.setZoom(view.getZoom());
         });
 
-        var content = this.getEl().dom.getElementsByClassName('openlayer-popup')[0];
+        var selectPopupEl = this.getEl().select('.pmh-select-popup').elements[0];
+        var clickPopupEl = this.getEl().select('.pmh-click-popup').elements[0];
 
-        var overlay = new ol.Overlay(({ element:content }));
-        var olMapDiv = this.getEl().dom.getElementsByClassName('openlayer')[0];
+
+        me.popup.selectPopup = Ext.widget('panel',{
+            height : 100,
+            title : 'SelectPopup',
+            width : 200,
+            renderTo : selectPopupEl
+        });
+
+        me.popup.selectPopup.show();
+        me.popup.selectPopup.hide();
+
+        me.popup.clickPopup = Ext.widget('panel',{
+            height : 100,
+            title : 'ClickPopup',
+            width : 200,
+            renderTo : clickPopupEl
+        });
+
+        me.popup.clickPopup.show();
+        me.popup.clickPopup.hide();
+
+        var clickOverlay =new ol.Overlay(({
+            id : 'clickPopup',
+            element:clickPopupEl
+        }));
+
+        var selectOverlay =new ol.Overlay(({
+            id : 'selectPopup',
+            element:selectPopupEl
+        }));
+
+
+        var olMapDiv = this.getEl().dom.getElementsByClassName('open-layer')[0];
         var map = new ol.Map({
             interactions: ol.interaction.defaults({
                 altShiftDragRotate: false,
@@ -59,32 +109,8 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
                 rotate: false
             }).extend([new ol.interaction.DragPan({kinetic: null})]),
             target: olMapDiv,
-            overlays : [overlay],
+            overlays : [selectOverlay,clickOverlay],
             view: view
-        });
-
-        map.on('singleclick', function (evt) {
-            var coordinate = evt.coordinate;
-
-            // EPSG:3857 - Google Mercator
-            // EPSG:4326 - WGS84 경위도
-            me.data.clickPosition = coordinate;
-            me.onMapClick(coordinate);
-
-
-            setTimeout(function(){
-                me.onUnselect(coordinate);
-            },150);
-
-
-
-
-
-
-
-
-
-            overlay.setPosition(coordinate);
         });
 
         view.setCenter([0, 0]);
@@ -113,12 +139,14 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
             },
             tpl:[
 
-                '<div style=" position:relative;width:800px;height:600px" class="pmh-open-layer">',
+                '<div style=" position:relative;width:800px;height:600px" class="pmh-open-gis-container">',
+
                     '<div class="map">',
-                        '<div id="'+Ext.id()+ '" class="googlemap"></div>',
-                        '<div id="'+Ext.id()+ '" class="openlayer"></div>',
+                        '<div id="'+Ext.id()+ '" class="base-map"></div>',
+                        '<div id="'+Ext.id()+ '" class="open-layer"></div>',
                     '</div>',
-                    '<div id="'+Ext.id()+ '" class="openlayer-popup"></div>',
+                    '<div id="'+Ext.id()+ '" class="pmh-select-popup"></div>',
+                    '<div id="'+Ext.id()+ '" class="pmh-click-popup"></div>',
                 '</div>',
             ],
             listeners : {
@@ -136,9 +164,13 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
 
     onAfterRender : function(comp){
         var me = this;
+        debugger;
         me.initMap();
         me.initOpenLayer();
 
+
+
+        me.initInteraction();
         me.addSelectInteraction();
 
         me.setCenter(34.43899833929228, 126.25914688280196);
@@ -184,19 +216,10 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
         }
         return null;
     },
-    draw : function(geomType,layoutName,id){
-        this.onDraw(geomType,layoutName,id);
-    },
-    moidfy : function(){
-        this.onModify()
-
-    },
     getFeatureId: function(layoutName,geoId){
         var me = this;
         return me.id+'-'+layoutName+'-'+geoId;
     },
-
-
     setGeometry:function(layoutName,geoId,geometry){
         var format = new ol.format['GeoJSON']();
 
@@ -216,8 +239,6 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
         }
 
         feature.setGeometry(new ol.geom[geometry.type](geometry.coordinates));
-
-
     },
     getGeometry :function(layoutName,geoId){
 
@@ -243,6 +264,5 @@ Ext.define('PmhTech.container.gis.OpenLayer', {
         });
         me.openLayer.addLayer(layer);
         return layer;
-
     },
 });

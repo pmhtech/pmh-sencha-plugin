@@ -1,27 +1,63 @@
 Ext.define('PmhTech.plugin.openlayer.Interaction', {
     extend: 'Ext.AbstractPlugin',
     alias: 'plugin.pmh-openlayer-interaction',
-
-    init : function(openLayer){
+    selected : false,
+    init : function(gisContainer){
         var me = this;
-        me.openLayer= openLayer;
+        me.gisContainer= gisContainer;
 
-        me.openLayer.addSelectInteraction = Ext.Function.bind(me.addSelectInteraction, me);
-        me.openLayer.getSelection = Ext.Function.bind(me.getSelection, me);
-        me.openLayer.onDraw = Ext.Function.bind(me.onDraw, me);
-        //me.openLayer.onModify = Ext.Function.bind(me.onModify, me);
+        me.gisContainer.initInteraction = Ext.Function.bind(me.initInteraction, me);
+        me.gisContainer.addSelectInteraction = Ext.Function.bind(me.addSelectInteraction, me);
+        me.gisContainer.getSelection = Ext.Function.bind(me.getSelection, me);
+        me.gisContainer.startDraw = Ext.Function.bind(me.startDraw, me);
+        me.gisContainer.isSelected=  Ext.Function.bind(me.isSelected, me);
+
     },
     interaction:{
         select : null,
         modify : null,
         draw : null
     },
+    isSelected: function(){
+        var me = this;
+      return me.selected;
+    },
+
+    initInteraction : function(){
+
+        var me =this;
+        var openLayer = me.gisContainer.openLayer;
+
+
+        openLayer.on('singleclick', function (evt) {
+
+            var coordinate = evt.coordinate;
+
+            // EPSG:3857 - Google Mercator
+            // EPSG:4326 - WGS84 경위도
+            me.gisContainer.data.clickPosition = coordinate;
+
+            me.selected=false;
+            openLayer.forEachFeatureAtPixel(
+                evt.pixel,
+                function (feature, layer) {
+                    me.selected=true;
+                }
+            );
+            me.onClick(coordinate);
+            me.onDeselect(coordinate);
+
+
+
+        });
+
+    },
     removeInteraction : function(eventName){
         var me = this;
-        var openLayer =me.openLayer.openLayer;
+        var openLayer =me.gisContainer.openLayer;
 
         if(eventName=='select'){
-            me.openLayer.isSelect=false;
+            me.selected=false;
         }
 
         openLayer.removeInteraction(me.interaction[eventName]);
@@ -31,7 +67,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
     addInteraction : function(eventName,event){
 
         var me = this;
-        var openLayer =me.openLayer.openLayer;
+        var openLayer =me.gisContainer.openLayer;
 
         me.interaction[eventName]=event;
         openLayer.addInteraction(event);
@@ -57,6 +93,27 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         return result;
 
     },
+
+
+    onClick : function(coordinates){
+
+        var me = this;
+        me.gisContainer.fireEvent('click',me.gisContainer,coordinates);
+    },
+    onSelect : function(layoutName,geoId,geometry){
+
+
+        var me = this;
+        if(me.selected==true) {
+            me.gisContainer.fireEvent('select', me.gisContainer, layoutName, geoId, geometry);
+        }
+    },
+    onDeselect : function(coordinates){
+        var me = this;
+        if(me.selected==false && me.getSelection().length>0){
+            me.gisContainer.fireEvent('deselect',me.gisContainer,coordinates);
+        }
+    },
     addSelectInteraction:function(){
         var me = this;
         var selectEvent = new ol.interaction.Select();
@@ -67,8 +124,6 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
 
         selectFeatures.on('add', function (event) {
 
-            var props = me.getSelection();
-            me.openLayer.isSelect=true;
             var data = event.element.getProperties();
 
             var layoutName = data.layoutName;
@@ -77,18 +132,15 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
                 type: data.geometry.getType(),
                 coordinates : data.geometry.getCoordinates()
             };
-
-            me.openLayer.fireEvent('select',layoutName,geoId,geometry);
-
+            me.onSelect(layoutName,geoId,geometry);
         });
 
     },
-
-    onDraw: function(geomType,layoutName,geoId){
+    startDraw: function(geomType,layoutName,geoId){
 
         var me=this;
 
-        var layout = this.openLayer.getLayer(layoutName);
+        var layout = this.gisContainer.getLayer(layoutName);
 
 
         var drawEvent = new ol.interaction.Draw({
@@ -100,14 +152,14 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         me.addInteraction('draw',drawEvent);
 
 
-     //   me.openLayer.fireEvent('drawstart',geomType,layoutName,id);
+     //   me.gisContainer.fireEvent('drawstart',geomType,layoutName,id);
 
         drawEvent.on('drawend', function (event) {
 
 
 
 
-            var featureId = me.openLayer.getFeatureId(this.layoutName,this.geoId);
+            var featureId = me.gisContainer.getFeatureId(this.layoutName,this.geoId);
 
             event.feature.setId(featureId);
             event.feature.setProperties({
@@ -115,11 +167,11 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
                 geoId : geoId
             });
 
-            var geometry = me.openlayer.getGeometry(layoutName,geoId);
+            var geometry = me.gisContainer.getGeometry(layoutName,geoId);
 
 
 
-         //   me.openLayer.fireEvent('drawend',this.geomType,this.layoutName,this.geoId);
+         //   me.gisContainer.fireEvent('drawend',this.geomType,this.layoutName,this.geoId);
             me.addSelectInteraction();
 
         },{

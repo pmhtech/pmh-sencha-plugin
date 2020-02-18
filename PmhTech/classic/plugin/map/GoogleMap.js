@@ -1,7 +1,7 @@
 Ext.define('PmhTech.plugin.map.GoogleMap', {
     extend: 'Ext.AbstractPlugin',
     alias: 'plugin.pmh-google-map',
-    cls : 'googlemap',
+    cls : 'base-map',
     init : function(openLayer){
 
         var me =this;

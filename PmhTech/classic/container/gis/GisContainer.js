@@ -3,6 +3,8 @@ Ext.define('PmhTech.container.gis.GisContainer', {
     alias: 'widget.pmh-gis-container',
 
     requires: [
+        'Ext.button.Button',
+        'Ext.toolbar.Fill',
         'PmhTech.plugin.map.GoogleMap',
         'PmhTech.plugin.openlayer.Interaction'
     ],
@@ -13,23 +15,59 @@ Ext.define('PmhTech.container.gis.GisContainer', {
     },{
         ptype : 'pmh-openlayer-interaction'
     }],
+    defaultPopupSize:{
+        width : 200,
+        height : 200
+    },
     popup : {
         selectPopup : null,
-        clickPopup : null
+        clickPopup : null,
+        mouseOver : false,
     },
     latlng:[0,0],
     googleMap: null,
     openLayer: null,
     style : 'position:relative',
 
+    reconfigurePopup : function(popupType,widgetName){
+        var me = this;
+        var popup = me.popup[popupType+'Popup'];
+        var activePopup = popup.down('>[header][hidden=false]');
+
+        if(activePopup){
+            activePopup.setHidden(true);
+        }
+
+        var widget = popup.down(widgetName);
+
+        if(!widget){
+            widget = Ext.widget(widgetName);
+            popup.add(widget);
+        }
+            widget.show();
+
+        return widget;
+
+
+    },
     showPopup : function(popupType,coordinates){
         var me = this;
 
+        var interaction = me.getInteraction();
+
+        //Polygon을 draw, modify중에는 팝업을 띄우지 않는다.
+
+        if(interaction=='draw' || interaction=='modify'){
+            return false;
+        }
         var popupName = popupType+'Popup';
         var overlay = me.openLayer.getOverlayById(popupName);
+
+
         overlay.setPosition(coordinates);
-        me.popup[popupName].show();
         overlay.setVisible(true);
+        me.popup[popupName].show();
+
 
     },
     hidePopup : function(popupType){
@@ -41,22 +79,17 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         me.popup[popupName].hide();
     },
 
-    test : function(coordinates){
-
-        for(var i=0;i<coordinates.length;i++){
-            var result=ol.proj.transform(coordinates[i], 'EPSG:3857', 'EPSG:4326');
-
-        }
-    },
     initOpenLayer : function(me){
 
         var me = this;
 
         var view = new ol.View({
-         //   projection: 'EPSG:4326',
             // make sure the view doesn't go beyond the 22 zoom levels of Google Maps
             maxZoom: 21
         });
+
+
+
         view.on('change:center', function() {
             var center = ol.proj.transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
             me.googleMap.setCenter(new google.maps.LatLng(center[1], center[0]));
@@ -66,38 +99,65 @@ Ext.define('PmhTech.container.gis.GisContainer', {
             me.googleMap.setZoom(view.getZoom());
         });
 
-        var selectPopupEl = this.getEl().select('.pmh-select-popup').elements[0];
-        var clickPopupEl = this.getEl().select('.pmh-click-popup').elements[0];
-
+        var selectPopupEl = this.getEl().down('.pmh-select-popup');
+        var clickPopupEl = this.getEl().down('.pmh-click-popup');
 
         me.popup.selectPopup = Ext.widget('panel',{
-            height : 100,
-            title : 'SelectPopup',
-            width : 200,
-            renderTo : selectPopupEl
+            title : 'selectPopup',
+            height : me.defaultPopupSize.height,
+            width : me.defaultPopupSize.width,
+            layout : {
+                type : 'vbox',
+                align : 'stretch'
+            },
+            listeners : {
+                add : function(comp,widget){
+                    debugger;
+
+                }
+            },
+            bbar : [{
+                xtype : 'button',
+                clickEvent : 'mouseup',
+                text :'수정',
+                handler : function(button){
+
+                    debugger;
+
+                },
+            },{
+                xtype : 'button',
+                text : '변경',
+                handler : 'onBtnModify'
+            }],
+            renderTo : selectPopupEl.dom,
         });
+
+
 
         me.popup.selectPopup.show();
         me.popup.selectPopup.hide();
 
-        me.popup.clickPopup = Ext.widget('panel',{
-            height : 100,
-            title : 'ClickPopup',
-            width : 200,
-            renderTo : clickPopupEl
+       /* me.popup.clickPopup = Ext.widget('container',{
+            title : 'clickPopup',
+            height : me.defaultPopupSize.height,
+            width : me.defaultPopupSize.width,
+            renderTo : clickPopupEl.down('.popup-detail').dom
         });
 
-        me.popup.clickPopup.show();
-        me.popup.clickPopup.hide();
+       // me.popup.clickPopup.show();
+      //  me.popup.clickPopup.hide();
 
         var clickOverlay =new ol.Overlay(({
             id : 'clickPopup',
-            element:clickPopupEl
+            element:clickPopupEl.dom
         }));
+*/
+
 
         var selectOverlay =new ol.Overlay(({
             id : 'selectPopup',
-            element:selectPopupEl
+            element:selectPopupEl.dom
         }));
 
 
@@ -109,7 +169,7 @@ Ext.define('PmhTech.container.gis.GisContainer', {
                 rotate: false
             }).extend([new ol.interaction.DragPan({kinetic: null})]),
             target: olMapDiv,
-            overlays : [selectOverlay,clickOverlay],
+            overlays : [selectOverlay,/*clickOverlay*/],
             view: view
         });
 
@@ -120,8 +180,8 @@ Ext.define('PmhTech.container.gis.GisContainer', {
 
         olMapDiv.parentNode.removeChild(olMapDiv);
         me.googleMap.controls[google.maps.ControlPosition.TOP_LEFT].push(olMapDiv);
-
         this.openLayer = map;
+
     },
 
     initComponent: function(){
@@ -145,8 +205,12 @@ Ext.define('PmhTech.container.gis.GisContainer', {
                         '<div id="'+Ext.id()+ '" class="base-map"></div>',
                         '<div id="'+Ext.id()+ '" class="open-layer"></div>',
                     '</div>',
-                    '<div id="'+Ext.id()+ '" class="pmh-select-popup"></div>',
-                    '<div id="'+Ext.id()+ '" class="pmh-click-popup"></div>',
+                    '<div id="'+Ext.id()+ '" class="pmh-select-popup">',
+
+                    '</div>',
+                    '<div id="'+Ext.id()+ '" class="pmh-click-popup">' ,
+
+                    '</div>',
                 '</div>',
             ],
             listeners : {
@@ -164,7 +228,6 @@ Ext.define('PmhTech.container.gis.GisContainer', {
 
     onAfterRender : function(comp){
         var me = this;
-        debugger;
         me.initMap();
         me.initOpenLayer();
 
@@ -185,8 +248,9 @@ Ext.define('PmhTech.container.gis.GisContainer', {
     },
     getZoom : function(){
 
-        this.googleMap.setZoom(view.getZoom());
-        var zoom = this.googleMap.getZoom();
+        var me = this;
+        me.googleMap.setZoom(view.getZoom());
+        var zoom = me.googleMap.getZoom();
         return zoom;
 
     },
@@ -195,8 +259,9 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         var me = this;
         var center = ol.proj.transform([lng,lat],  'EPSG:4326','EPSG:3857');
 
+
         this.openLayer.getView().setCenter(center);
-        this.googleMap.setCenter(new google.maps.LatLng(lat, lng));
+        me.googleMap.setCenter(new google.maps.LatLng(lat, lng));
         me.fireEvent('changecenter',me,lat,lng);
 
     },
@@ -216,15 +281,15 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         }
         return null;
     },
-    getFeatureId: function(layoutName,geoId){
+    getFeatureId: function(layerName,geoId){
         var me = this;
-        return me.id+'-'+layoutName+'-'+geoId;
+        return me.id+'-'+layerName+'-'+geoId;
     },
-    setGeometry:function(layoutName,geoId,geometry){
+    setGeometry:function(layerName,geoId,geometry){
         var format = new ol.format['GeoJSON']();
 
-        var layout = this.getLayer(layoutName);
-        var featureId = this.getFeatureId(layoutName,geoId);
+        var layout = this.getLayer(layerName);
+        var featureId = this.getFeatureId(layerName,geoId);
         var feature = layout.getSource().getFeatureById(featureId);
 
         if(!feature){
@@ -232,7 +297,7 @@ Ext.define('PmhTech.container.gis.GisContainer', {
             feature= new ol.Feature();
             feature.setId(featureId);
             feature.setProperties({
-                layoutName : layoutName,
+                layerName : layerName,
                 geoId : geoId
             });
             layout.getSource().addFeature(feature);
@@ -240,12 +305,18 @@ Ext.define('PmhTech.container.gis.GisContainer', {
 
         feature.setGeometry(new ol.geom[geometry.type](geometry.coordinates));
     },
-    getGeometry :function(layoutName,geoId){
+    getGeometry :function(layerName,geoId){
 
         var format = new ol.format['GeoJSON']();
-        var layout = this.getLayer(layoutName);
-        var featureId = this.getFeatureId(layoutName,geoId);
+        var layout = this.getLayer(layerName);
+        var featureId = this.getFeatureId(layerName,geoId);
         var feature = layout.getSource().getFeatureById(featureId)
+
+        if(feature==null){
+            return null;
+        }
+
+
         var result =format.writeGeometryObject(feature.getGeometry());
         return result;
     },

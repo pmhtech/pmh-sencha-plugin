@@ -31,6 +31,7 @@ Ext.define('PmhTech.utils.Window', {
         popup.initSingleTone(options);
         popup.show();
         Ext.WindowManager.bringToFront(popup);
+        return popup;
 
     },
     printHTML: function (html) {

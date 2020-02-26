@@ -121,7 +121,6 @@ Ext.define('PmhTech.classic.map.GoogleMap',{
         select_interaction.getFeatures().on("add",function(e){
 
 
-            debugger;
             var feature = e.element;
             var temp = feature.getId().split('_');
             var layerName = temp[0];

@@ -3,8 +3,6 @@ Ext.define('PmhTech.container.gis.GisContainer', {
     alias: 'widget.pmh-gis-container',
 
     requires: [
-        'Ext.button.Button',
-        'Ext.toolbar.Fill',
         'PmhTech.plugin.map.GoogleMap',
         'PmhTech.plugin.openlayer.Interaction'
     ],
@@ -29,14 +27,22 @@ Ext.define('PmhTech.container.gis.GisContainer', {
     openLayer: null,
     style : 'position:relative',
 
-    reconfigurePopup : function(popupType,widgetName){
+    reconfigurePopup : function(popupType,widgetName,shortName){
         var me = this;
-        var popup = me.popup[popupType+'Popup'];
-        var activePopup = popup.down('>[header][hidden=false]');
-
-        if(activePopup){
-            activePopup.setHidden(true);
+        var interaction = me.getInteraction();
+        if(interaction=='draw' || interaction=='modify'){
+            return false;
         }
+
+        var popup = me.popup[popupType+'Popup'];
+        var popupItems = popup.items.items;
+
+        Ext.ComponentQuery.query('gis-info-popup')[0].setTitle(shortName);
+
+        popupItems.forEach(function(item){
+            item.hide();
+        });
+
 
         var widget = popup.down(widgetName);
 
@@ -44,7 +50,7 @@ Ext.define('PmhTech.container.gis.GisContainer', {
             widget = Ext.widget(widgetName);
             popup.add(widget);
         }
-            widget.show();
+        widget.show();
 
         return widget;
 
@@ -74,9 +80,10 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         var me = this;
         var popupName = popupType+'Popup';
         var overlay = me.openLayer.getOverlayById(popupName);
+        me.popup[popupName].setHidden(true);
         overlay.setVisible(false);
 
-        me.popup[popupName].hide();
+
     },
 
     initOpenLayer : function(me){
@@ -102,39 +109,12 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         var selectPopupEl = this.getEl().down('.pmh-select-popup');
         var clickPopupEl = this.getEl().down('.pmh-click-popup');
 
-        me.popup.selectPopup = Ext.widget('panel',{
-            title : 'selectPopup',
-            height : me.defaultPopupSize.height,
-            width : me.defaultPopupSize.width,
-            layout : {
-                type : 'vbox',
-                align : 'stretch'
-            },
-            listeners : {
-                add : function(comp,widget){
-                    debugger;
-
-                }
-            },
-            bbar : [{
-                xtype : 'button',
-                clickEvent : 'mouseup',
-                text :'수정',
-                handler : function(button){
-
-                    debugger;
-
-                },
-            },{
-                xtype : 'button',
-                text : '변경',
-                handler : 'onBtnModify'
-            }],
+        me.popup.selectPopup = Ext.widget('gis-info-popup',{
             renderTo : selectPopupEl.dom,
+            gisContainer : me,
+            width: 200,
+            height : 300,
         });
-
-
-
         me.popup.selectPopup.show();
         me.popup.selectPopup.hide();
 
@@ -252,7 +232,6 @@ Ext.define('PmhTech.container.gis.GisContainer', {
         me.googleMap.setZoom(view.getZoom());
         var zoom = me.googleMap.getZoom();
         return zoom;
-
     },
 
     setCenter: function(lat,lng){

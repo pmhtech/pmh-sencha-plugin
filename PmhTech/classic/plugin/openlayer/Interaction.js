@@ -1,7 +1,7 @@
 Ext.define('PmhTech.plugin.openlayer.Interaction', {
     extend: 'Ext.AbstractPlugin',
     alias: 'plugin.pmh-openlayer-interaction',
-    selected : false,
+    selectable : false,
     init : function(gisContainer){
         var me = this;
         me.gisContainer= gisContainer;
@@ -10,6 +10,8 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         me.gisContainer.addSelectInteraction = Ext.Function.bind(me.addSelectInteraction, me);
         me.gisContainer.getSelection = Ext.Function.bind(me.getSelection, me);
         me.gisContainer.startDraw = Ext.Function.bind(me.startDraw, me);
+        me.gisContainer.select = Ext.Function.bind(me.select, me);
+        me.gisContainer.startModify = Ext.Function.bind(me.startModify, me);
         me.gisContainer.isSelected=  Ext.Function.bind(me.isSelected, me);
         me.gisContainer.getInteraction =  Ext.Function.bind(me.getInteraction , me);
         me.gisContainer.removeInteraction=Ext.Function.bind(me.removeInteraction , me);
@@ -28,7 +30,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
      */
     isSelected: function(){
         var me = this;
-      return me.selected;
+      return me.selectable;
     },
 
     /**
@@ -66,6 +68,13 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
          */
         openLayer.on('singleclick', function (evt) {
 
+
+            var mode = me.getInteraction();
+
+            if(mode=='modify'){
+                return;
+            }
+
             var coordinate = evt.coordinate;
 
 
@@ -73,7 +82,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
             // EPSG:4326 - WGS84 경위도
             me.gisContainer.data.clickPosition = coordinate;
 
-            me.selected=false;
+            me.selectable=false;
             var layerName = null;
 
             /**
@@ -82,8 +91,14 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
             openLayer.forEachFeatureAtPixel(
                 evt.pixel,
                 function (feature, layer) {
-                    me.selected=true;
-                    layerName = layer.get('name');
+                    if(layer){
+
+                        if(layerName!=null){
+                            return;
+                        }
+                        me.selectable=true;
+                        layerName = layer.get('name');
+                    }
                 }
             );
 
@@ -162,17 +177,37 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         me.gisContainer.fireEvent('click',me.gisContainer,coordinates,layerName);
     },
 
+    select : function(datas){
+      var me = this;
+
+
+      var selectEvent = me.interaction.select;
+      var features =[];
+
+      for(var i=0;i<datas.length;i++){
+          var layerName = datas[i].layerName;
+          var geoId = datas[i].geoId;
+          var featureId = me.gisContainer.getFeatureId(layerName,geoId);
+          var feature = me.gisContainer.getLayer(layerName).getSource().getFeatureById(featureId);
+          selectEvent.getFeatures().push(feature)
+          features.push(feature);
+
+      }
+
+    },
+
     /**
      * 폴리건 선택시 Event
      * @param layerName
      * @param geoId
      * @param geometry
      */
+
     onSelect : function(layerName,geoId,geometry){
 
 
         var me = this;
-        if(me.selected==true) {
+        if(me.selectable==true) {
             me.gisContainer.fireEvent('select', me.gisContainer, layerName, geoId, geometry);
         }
     },
@@ -185,7 +220,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
      */
     onDeselect : function(coordinates){
         var me = this;
-        if(me.selected==false && me.getSelection().length>0){
+        if(me.selectable==false && me.getSelection().length>0){
             me.gisContainer.fireEvent('deselect',me.gisContainer,coordinates);
         }
     },
@@ -193,6 +228,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         var me = this;
         var selectEvent = new ol.interaction.Select();
         me.removeInteraction('draw');
+        me.removeInteraction('modify');
         me.addInteraction('select',selectEvent);
 
         var selectFeatures = selectEvent.getFeatures();
@@ -211,6 +247,33 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
         });
 
     },
+
+    startModify: function(){
+        var me = this;
+
+        me.removeInteraction('draw');
+
+        var features = me.interaction.select.getFeatures();
+        features.on('add',function(event){
+
+            var feature = event.element;
+
+
+
+        });
+
+        var modifyEvent = new ol.interaction.Modify({
+            features: features,
+            // delete vertices by pressing the SHIFT key
+            deleteCondition: function (event) {
+                return ol.events.condition.shiftKeyOnly(event) &&
+                    ol.events.condition.singleClick(event);
+            }
+        });
+        me.addInteraction('modify',modifyEvent);
+
+
+    },
     /**
      *
      * @param geomType  {Polygon Type}
@@ -221,7 +284,7 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
 
         var me=this;
 
-        var layout = this.gisContainer.getLayer(layerName);
+        var layout = me.gisContainer.getLayer(layerName);
 
 
         var drawEvent = new ol.interaction.Draw({
@@ -250,13 +313,6 @@ Ext.define('PmhTech.plugin.openlayer.Interaction', {
                 layerName: layerName,
                 geoId : geoId
             });
-
-            var geometry = me.gisContainer.getGeometry(layerName,geoId);
-
-
-
-         //   me.gisContainer.fireEvent('drawend',this.geomType,this.layerName,this.geoId);
-
 
             me.addSelectInteraction();
 

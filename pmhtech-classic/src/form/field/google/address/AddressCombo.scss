@@ -1,0 +1,32 @@
+.pac-item {
+  font-size: 14px;
+  color : #555555;
+}
+.pac-icon {
+  padding-right: 7px;
+}
+
+.x-boundlist-selected .pac-icon{
+  color:#EE5861;
+}
+
+.pac-icon-marker{
+  background : none;
+}
+
+.pac-item-query{
+  font-size: 13px;
+  padding-right: 8px;
+  color: #000;
+}
+
+.pac-secondary{
+  color:gray;
+  margin-left:10px;
+  font-size:9px;
+}
+
+.pac-matched{
+  font-weight: 700;
+
+}

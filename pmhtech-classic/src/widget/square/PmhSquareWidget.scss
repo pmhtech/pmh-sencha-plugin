@@ -1,0 +1,23 @@
+.pmh-square {
+  border-radius: 10px;
+  text-align: center;
+  margin: 40px auto;
+}
+
+.pmh-square .text{
+  margin: 10px auto;
+  font-size:25px;
+  font-weight:400;
+}
+
+.pmh-square .min-text{
+  color:var(--slider-min-range-color);
+}
+
+.pmh-square .allow-text{
+  color:var(--slider-allow-range-color);
+}
+
+.pmh-square .max-text{
+  color:var(--slider-max-range-color);
+}

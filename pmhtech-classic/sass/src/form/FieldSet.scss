@@ -1,0 +1,12 @@
+.#{$prefix}fieldset {
+  //border-top: 0px solid mix(#000, top($fieldset-border-color), 10%) !important;
+  border : 0px !important;
+
+  .#{$prefix}fieldset-body {
+    position: relative;
+  }
+
+  &.#{$prefix}fieldset-collapsed {
+    background: none;
+  }
+}

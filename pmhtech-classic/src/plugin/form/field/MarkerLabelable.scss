@@ -1,0 +1,21 @@
+.pmh-field-br-tag {
+  line-height :12px;
+  padding-top :0px;
+}
+
+.pmh-field-prefix{
+  float: left;
+  height: 24px;
+  margin-right:6px;
+}
+
+.pmh-field-required{
+  color:#ff0000;
+  font-size:14px;
+  letter-spacing: unset;
+  margin-left:0.5px;
+}
+.pmh-field-br-tag .pmh-field-prefix{
+  margin-top: 5px;
+  height: 25px;
+}

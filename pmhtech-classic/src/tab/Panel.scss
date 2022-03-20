@@ -1,0 +1,42 @@
+
+.pmh-tabpanel .x-tab-bar-body-default{
+  padding : 0px;
+ //min-height : 30px;
+  border-bottom : 1px solid #e7e7e7;
+}
+
+.pmh-tabpanel .x-tab-inner-default{
+  font-size : 14px;
+}
+
+
+.pmh-tabpanel .x-tab-default {
+  padding: 0px 10px;
+  //min-width: 80px;
+
+  border-radius: 0px;
+}
+
+.x-tab-bar-horizontal > .x-tab-bar-body-default {
+  min-height: 30px;
+  height : auto !important
+}
+
+.pmh-tabpanel .x-tab.x-tab-active.x-tab-default{
+  background-color: white;
+  border-bottom-width: 3px !important;
+}
+
+.pmh-tabpanel .x-tab-bar-default{
+  background-color: white;
+}
+
+
+.pmh-tabpanel .x-tab.x-tab-active.x-tab-default .x-tab-inner-default{
+  color : var(--menu-active-background-color) !important;
+}
+
+
+.pmh-tabpanel .x-tab-button-default {
+  text-align: center;
+}

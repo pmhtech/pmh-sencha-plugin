@@ -1,0 +1,29 @@
+
+.pmh-file-drop-zone{
+    width:100%;
+    height:100%;
+    background:white;
+    text-align: center;
+    line-height:14px;
+    font-size:12px;
+    font-weight:400;
+    border: 1px dotted black;
+}
+
+.pmh-file-drop-zone .pmh-file-drop-text{
+    padding-top: 14px;
+    text-align:right;
+    margin-right: 20px;
+}
+
+
+
+.pmh-file-drop-image {
+    width: 98px;
+    height: 120px;
+    position: absolute;
+    text-align: center;
+    background-size: 98px 120px;
+    background-repeat: no-repeat;
+    background-image: url('../resources/img/file-drag.png');
+}
